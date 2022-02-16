@@ -17,7 +17,7 @@ final class VersionUtility
     {
         $str = 'dev';
         try {
-            return explode('@', Versions::getVersion('kanti/web-vitals-tracker'))[0] ?? $str;
+            return explode('@', Versions::getVersion('andersundsehr/ssi-include'))[0] ?? $str;
         } catch (Throwable $e) {
             return $str;
         }
