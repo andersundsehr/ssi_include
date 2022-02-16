@@ -1,0 +1,57 @@
+{
+  "name": "andersundsehr/ssi-include",
+  "description": "Allows to periodically create ssi includes from anders und sehr GmbH",
+  "type": "typo3-cms-extension",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Matthias Vogel",
+      "email": "m.vogel@andersundsehr.com",
+      "homepage": "https://andersundsehr.com"
+    }
+  ],
+  "replace": {
+    "typo3-ter/ssi-include": "self.version"
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "ssi_include"
+    },
+    "pluswerk/grumphp-config": {
+      "auto-setting": true
+    },
+    "grumphp": {
+      "config-default-path": "vendor/pluswerk/grumphp-config/grumphp.yml"
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "phpro/grumphp": true,
+      "typo3/class-alias-loader": true,
+      "typo3/cms-composer-installers": true,
+      "pluswerk/grumphp-config": true,
+      "phpstan/extension-installer": true
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "AUS\\SsiInclude\\": "Classes/"
+    }
+  },
+  "ter-require": {
+    "webimpress/safe-writer": "^2.2.0"
+  },
+  "require": {
+    "php": "~7.4.0 || ~8.0.0 || ~8.1.0",
+    "ocramius/package-versions": "^2.1.0",
+    "typo3/cms-fluid": "^10.4.0 || ^11.5.0",
+    "typo3/cms-frontend": "^10.4.0 || ^11.5.0",
+    "webimpress/safe-writer": "^2.2.0"
+  },
+  "require-dev": {
+    "phpstan/extension-installer": "^1.1.0",
+    "pluswerk/grumphp-config": "^5.0",
+    "saschaegerer/phpstan-typo3": "^0.13.3"
+  }
+}

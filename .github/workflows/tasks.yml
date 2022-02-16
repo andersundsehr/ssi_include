@@ -1,0 +1,68 @@
+name: Tasks
+
+on: [push, pull_request]
+
+jobs:
+  lint-php:
+    name: Linting php with grumphp
+    runs-on: ubuntu-latest
+    container:
+      image: kanti/buildy:7.4
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache/files
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - run: composer install --no-interaction --no-progress --ignore-platform-req=ext*
+      - run: ./vendor/bin/grumphp run --ansi
+
+  ter-release:
+    name: TER release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [ lint-php]
+    env:
+      TYPO3_EXTENSION_KEY: 'ssi_include'
+      REPOSITORY_URL: 'https://github.com/andersundsehr/ssi_include'
+      TYPO3_API_TOKEN: ${{ secrets.TYPO3_API_TOKEN }}
+      TYPO3_API_USERNAME: ${{ secrets.TYPO3_API_USERNAME }}
+      TYPO3_API_PASSWORD: ${{ secrets.TYPO3_API_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: intl, mbstring, xml, soap, zip, curl
+          tools: composer
+
+      - name: Install typo3/tailor
+        run: composer global require typo3/tailor --prefer-dist --no-progress
+
+      - name: Upload EXT:ssi_include to TER
+        run: |
+          sed -i 's/\\AUS\\SsiInclude\\Utility\\VersionUtility::getVersion()/'\''${{ steps.get_version.outputs.VERSION }}'\''/g' ext_emconf.php \
+          && git config --global user.email "no@one" \
+          && git config --global user.name "No One" \
+          && git add ext_emconf.php \
+          && jq '.require = .["ter-require"]' composer.json | sponge composer.json \
+          && composer i --no-dev \
+          && git add vendor -f \
+          && git commit -m 'x' -n \
+          && git archive -o archive.zip HEAD --prefix=ssi_include-${{ steps.get_version.outputs.VERSION }}/ \
+          && git reset --hard HEAD~ \
+          && curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/andersundsehr/ssi_include/releases/tags/${{ steps.get_version.outputs.VERSION }} > release.json \
+          && php ~/.composer/vendor/bin/tailor ter:publish ${{ steps.get_version.outputs.VERSION }} --artefact=archive.zip \
+          --comment="$(cat release.json | jq -r '.name')
+
+          $(cat release.json | jq -r '.body')
+
+          $(cat release.json | jq -r '.html_url')"
