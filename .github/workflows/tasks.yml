@@ -23,7 +23,7 @@ jobs:
     name: TER release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [ lint-php]
+    needs: [ lint-php ]
     env:
       TYPO3_EXTENSION_KEY: 'ssi_include'
       REPOSITORY_URL: 'https://github.com/andersundsehr/ssi_include'
@@ -53,7 +53,8 @@ jobs:
           && git config --global user.email "no@one" \
           && git config --global user.name "No One" \
           && git add ext_emconf.php \
-          && jq '.require = .["ter-require"]' composer.json | sponge composer.json \
+          && jq '.require = .["ter-require"]' composer.json > composer.json_tmp \
+          && mv composer.json_tmp composer.json \
           && composer i --no-dev \
           && git add vendor -f \
           && git commit -m 'x' -n \
