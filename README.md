@@ -48,7 +48,7 @@ location @sfc {
   ssi_silent_errors on; #this should be on
 
   ...
-  
+
   charset utf-8;
   default_type text/html;
   try_files /typo3temp/tx_staticfilecache/https_${host}_443${uri}/index /typo3temp/tx_staticfilecache/${scheme}_${host}_${server_port}${uri}/index =405;
@@ -88,6 +88,45 @@ If you include want to render the same partial with diffrent arguments it will s
   </div>
 </f:section>
 ````
+
+
+### Using the LazyDataProcessor to increase the Performance even more.
+
+#### before:
+````typoscript
+10 = FLUIDTEMPLATE
+10 {
+  #...
+  100 = TYPO3\CMS\Frontend\DataProcessing\MenuProcessor
+  100 {
+    #... Menu Processor Config
+  }
+  200 = AUS\AusProject\DataProcessing\SpeicalProcessor
+  #...
+}
+````
+
+#### after:
+````typoscript
+10 = FLUIDTEMPLATE
+10 {
+  #...
+  100 = AUS\SsiInclude\DataProcessing\LazyDataProcessor
+  100.proxiedProcessor = TYPO3\CMS\Frontend\DataProcessing\MenuProcessor
+  100.proxiedProcessor {
+    #... Menu Processor Config
+  }
+
+  200 = AUS\SsiInclude\DataProcessing\LazyDataProcessor
+  200.proxiedProcessor = AUS\AusProject\DataProcessing\SpeicalProcessor
+  200.variables = specialVar
+  # the LazyDataPrcoessor needs to know that variable name should be proxied.
+  # So we need to tell him if it is not configured inside the proxiedProcessor.as setting. 
+
+  #...
+}
+````
+
 
 Now the Setup is done 😊   
 If something did not work 😮  
