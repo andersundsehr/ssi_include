@@ -89,8 +89,9 @@ If you include want to render the same partial with diffrent arguments it will s
 </f:section>
 ````
 
-Now the Setup is done 😊   
-If something did not work 😮  
-or you appreciate this Extension 🥰 let us know.
+# with ♥️ from anders und sehr GmbH
 
-We have Open Jobs https://www.andersundsehr.com/karriere/
+> If something did not work 😮  
+> or you appreciate this Extension 🥰 let us know.
+
+> We are hiring https://www.andersundsehr.com/karriere/
