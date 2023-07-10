@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\ViewHelpers;
 
+use AUS\SsiInclude\Event\RenderedEvent;
 use Exception;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
@@ -47,6 +49,11 @@ class RenderIncludeViewHelper extends RenderViewHelper
             if (self::isBackendUser()) {
                 return $html;
             }
+
+            $eventDispatcher = GeneralUtility::makeInstance(EventDispatcher::class);
+            $renderedHtmlEvent = new RenderedEvent($html);
+            $eventDispatcher->dispatch($renderedHtmlEvent);
+            $html = $renderedHtmlEvent->getHtml();
 
             @mkdir(dirname($absolutePath), octdec($GLOBALS['TYPO3_CONF_VARS']['SYS']['folderCreateMask']), true);
             FileWriter::writeFile($absolutePath, $html);
