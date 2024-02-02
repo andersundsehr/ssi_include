@@ -28,6 +28,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
     {
         parent::initializeArguments();
         $this->registerArgument('name', 'string', 'Specifies the file name of the cache (without .html ending)', true);
+        $this->registerArgument('cacheLifeTime', 'int', 'Specifies the lifetime in seconds (defaults to 300)', false, 300);
     }
 
     /**
@@ -44,7 +45,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
         $filename = static::getSiteName() . '_' . static::getLangauge() . '_' . $name;
         $basePath = self::SSI_INCLUDE_DIR . $filename;
         $absolutePath = Environment::getPublicPath() . $basePath;
-        if (self::shouldRenderFile($absolutePath)) {
+        if (self::shouldRenderFile($absolutePath, $arguments['cacheLifeTime'])) {
             $html = parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
             if (self::isBackendUser()) {
                 return $html;
@@ -62,12 +63,11 @@ class RenderIncludeViewHelper extends RenderViewHelper
         return '<!--# include wait="yes" virtual="' . $basePath . '?ssi_include=' . $filename . '" -->';
     }
 
-    private static function shouldRenderFile(string $absolutePath): bool
+    private static function shouldRenderFile(string $absolutePath, int $cacheLifeTime): bool
     {
         if (!file_exists($absolutePath)) {
             return true;
         }
-        $cacheLifeTime = 5 * 60; // 5min TODO
         if ((filemtime($absolutePath) + $cacheLifeTime) < time()) {
             return true;
         }
