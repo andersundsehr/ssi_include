@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\ViewHelpers;
 
+use Webimpress\SafeWriter\Exception\ExceptionInterface;
+use Closure;
 use AUS\SsiInclude\Event\RenderedEvent;
 use Exception;
 use TYPO3\CMS\Core\Context\Context;
@@ -33,14 +35,12 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
     /**
      * @param array<string, mixed> $arguments
-     * @param \Closure $renderChildrenClosure
-     * @param RenderingContextInterface $renderingContext
-     * @return string
-     * @throws \Webimpress\SafeWriter\Exception\ExceptionInterface
+     * @throws Exception
+     * @throws ExceptionInterface
      */
-    public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
+    public static function renderStatic(array $arguments, Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
     {
-        $name = static::validateName($arguments);
+        $name = self::validateName($arguments);
 
         $filename = static::getSiteName() . '_' . static::getLangauge() . '_' . $name;
         $basePath = self::SSI_INCLUDE_DIR . $filename;
@@ -56,10 +56,11 @@ class RenderIncludeViewHelper extends RenderViewHelper
             $eventDispatcher->dispatch($renderedHtmlEvent);
             $html = $renderedHtmlEvent->getHtml();
 
-            @mkdir(dirname($absolutePath), octdec($GLOBALS['TYPO3_CONF_VARS']['SYS']['folderCreateMask']), true);
+            @mkdir(dirname($absolutePath), (int)octdec((string)$GLOBALS['TYPO3_CONF_VARS']['SYS']['folderCreateMask']), true);
             FileWriter::writeFile($absolutePath, $html);
             GeneralUtility::fixPermissions($absolutePath);
         }
+
         return '<!--# include wait="yes" virtual="' . $basePath . '?ssi_include=' . $filename . '" -->';
     }
 
@@ -68,25 +69,24 @@ class RenderIncludeViewHelper extends RenderViewHelper
         if (!file_exists($absolutePath)) {
             return true;
         }
+
         if ((filemtime($absolutePath) + $cacheLifeTime) < time()) {
             return true;
         }
-        if (self::isBackendUser()) {
-            return true;
-        }
-        return false;
+
+        return self::isBackendUser();
     }
 
     /**
      * @param array<string, mixed> $arguments
-     * @return string
      * @throws Exception
      */
     private static function validateName(array $arguments): string
     {
-        if (ctype_alnum($arguments['name'])) {
+        if (ctype_alnum((string) $arguments['name'])) {
             return $arguments['name'];
         }
+
         throw new Exception(sprintf('Only Alphanumeric characters allowed got: "%s"', $arguments['name']));
     }
 

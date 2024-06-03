@@ -18,7 +18,7 @@ final class VersionUtility
         $str = 'dev';
         try {
             return explode('@', Versions::getVersion('andersundsehr/ssi-include'))[0] ?? $str;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return $str;
         }
     }

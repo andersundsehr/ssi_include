@@ -1,5 +1,7 @@
 <?php
 
+use AUS\SsiInclude\Utility\VersionUtility;
+
 /** @var string $_EXTKEY */
 $EM_CONF[$_EXTKEY] = [
     'title' => 'SSI Include - Render your includes',
@@ -10,7 +12,7 @@ $EM_CONF[$_EXTKEY] = [
     'author_company' => 'anders und sehr GmbH',
     'state' => 'stable',
     'clearCacheOnLoad' => 0,
-    'version' => \AUS\SsiInclude\Utility\VersionUtility::getVersion(),
+    'version' => VersionUtility::getVersion(),
     'constraints' => [
         'depends' => [
             'typo3' => '10.4.0-11.99.99',
