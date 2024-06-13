@@ -6,11 +6,8 @@ namespace AUS\SsiInclude\Event;
 
 class RenderedEvent
 {
-    protected string $html;
-
-    public function __construct(string $html)
+    public function __construct(protected string $html)
     {
-        $this->html = $html;
     }
 
     public function getHtml(): string
