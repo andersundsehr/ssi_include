@@ -60,11 +60,12 @@ location @sfc {
 And now the fun part. You can replace any partial rendering with the ViewHelper ``s:renderInclude``.  
 That Partial will only be rendered once every 5 minutes for the complete Site (Site Configuration Site (not Page)).  
 The only differentiation will be done by **site config**, **language** and the provided **name**.  
+Optionally, you can add **cacheLifeTime** to define the lifetime of the partial in seconds.
 If you include want to render the same partial with diffrent arguments it will still be the same content if you have the same name.
 
 #### before:
 
-````
+````html
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
       data-namespace-typo3-fluid="true">
 
@@ -84,7 +85,7 @@ If you include want to render the same partial with diffrent arguments it will s
 
 <f:section name="Main">
   <div class="something something">
-    <s:renderInclude name="mainMenu" partial="Menus/MainMenu" arguments="{_all}"/>
+    <s:renderInclude name="mainMenu" cacheLifeTime="900" partial="Menus/MainMenu" arguments="{_all}"/>
   </div>
 </f:section>
 ````
@@ -129,7 +130,10 @@ If you include want to render the same partial with diffrent arguments it will s
 
 
 Now the Setup is done 😊   
-If something did not work 😮  
-or you appreciate this Extension 🥰 let us know.
 
-We have Open Jobs https://www.andersundsehr.com/karriere/
+# with ♥️ from anders und sehr GmbH
+
+> If something did not work 😮  
+> or you appreciate this Extension 🥰 let us know.
+
+> We are hiring https://www.andersundsehr.com/karriere/

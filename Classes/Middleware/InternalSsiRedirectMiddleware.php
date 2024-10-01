@@ -18,17 +18,20 @@ class InternalSsiRedirectMiddleware implements MiddlewareInterface
     {
         if (isset($request->getQueryParams()['ssi_include'])) {
             $ssiInclude = $request->getQueryParams()['ssi_include'];
-            if (!preg_match('/^([a-zA-Z0-9_]+)$/', $ssiInclude)) {
+            if (!preg_match('/^(\w+)$/', (string) $ssiInclude)) {
                 return new HtmlResponse('ssi_include invalid', 400);
             }
+
             $cacheFileName = RenderIncludeViewHelper::SSI_INCLUDE_DIR . $ssiInclude;
             $absolutePath = Environment::getPublicPath() . $cacheFileName;
             if (!file_exists($absolutePath)) {
                 // ignore response use the content of the file:
                 $handler->handle($request->withAttribute('noCache', true));
             }
+
             return new HtmlResponse(file_get_contents($absolutePath) ?: '');
         }
+
         return $handler->handle($request);
     }
 }
