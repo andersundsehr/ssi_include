@@ -35,13 +35,7 @@ class LazyDataProcessor implements DataProcessorInterface
                         '10' => $processorConfiguration['proxiedProcessor'],
                         '10.' => $processorConfiguration['proxiedProcessor.'],
                     ]];
-                    $microTimeStart = microtime(true);
                     $realProcessedData = $this->contentDataProcessor->process($cObj, $configuration, $processedData);
-                    $microTimeEnd = microtime(true);
-                    debug($microTimeEnd - $microTimeStart, $variableName);
-                    debug($microTimeEnd - $microTimeStart, $variableName);
-                    debug($microTimeEnd - $microTimeStart, $variableName);
-//                    throw new \Exception();
                 }
                 return $realProcessedData[$variableName] ?? null;
             });
@@ -110,7 +104,7 @@ final class Proxy implements \Iterator, \Countable
     public function __toString()
     {
         $this->_processRealInstance();
-        return $this->value->__toString();
+        return $this->value . '';
     }
 
     public function current()
@@ -145,6 +139,6 @@ final class Proxy implements \Iterator, \Countable
     public function count()
     {
         $this->_processRealInstance();
-        return count($this->value);
+        return is_countable($this->value) ? count($this->value) : (isset($this->value) ? 1 : 0);
     }
 }

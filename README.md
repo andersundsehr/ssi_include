@@ -102,7 +102,7 @@ If you include want to render the same partial with diffrent arguments it will s
   100 {
     #... Menu Processor Config
   }
-  200 = AUS\AusProject\DataProcessing\SpeicalProcessor
+  200 = AUS\AusProject\DataProcessing\SpecialProcessor
   #...
 }
 ````
@@ -119,9 +119,9 @@ If you include want to render the same partial with diffrent arguments it will s
   }
 
   200 = AUS\SsiInclude\DataProcessing\LazyDataProcessor
-  200.proxiedProcessor = AUS\AusProject\DataProcessing\SpeicalProcessor
+  200.proxiedProcessor = AUS\AusProject\DataProcessing\SpecialProcessor
   200.variables = specialVar
-  # the LazyDataPrcoessor needs to know that variable name should be proxied.
+  # the LazyDataProcessor needs to know that variable name should be proxied.
   # So we need to tell him if it is not configured inside the proxiedProcessor.as setting. 
 
   #...
