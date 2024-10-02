@@ -17,6 +17,7 @@ class InternalSsiRedirectMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (isset($request->getQueryParams()['ssi_include'])) {
+            putenv('SSI_CONTEXT=1');
             $ssiInclude = $request->getQueryParams()['ssi_include'];
             if (!preg_match('/^(\w+)$/', (string) $ssiInclude)) {
                 return new HtmlResponse('ssi_include invalid', 400);

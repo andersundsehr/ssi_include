@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\DataProcessing;
 
+use AUS\SsiInclude\Proxy\Proxy;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentDataProcessor;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -48,101 +49,3 @@ class LazyDataProcessor implements DataProcessorInterface
     }
 }
 
-
-final class Proxy implements \Iterator, \Countable
-{
-    private ?\Closure $callback = null;
-    /** @var mixed */
-    private $value;
-
-    public function __construct(\Closure $callback)
-    {
-        $this->callback = $callback;
-    }
-
-    private function _processRealInstance(): void
-    {
-        $callback = $this->callback;
-        if ($callback) {
-            $this->callback = null;
-            $this->value = $callback();
-        }
-    }
-
-    public function __call($name, $arguments)
-    {
-        $this->_processRealInstance();
-        return call_user_func([$this->value, $name], $arguments);
-    }
-
-    public function __invoke(...$arguments)
-    {
-        $this->_processRealInstance();
-        return call_user_func($this->value, $arguments);
-    }
-
-    public function __isset($name)
-    {
-        $this->_processRealInstance();
-        return isset($this->value[$name]);
-    }
-
-    public function __get($name)
-    {
-        $this->_processRealInstance();
-        return $this->value[$name];
-    }
-
-    public function __set($name, $value)
-    {
-        $this->_processRealInstance();
-        $this->value[$name] = $value;
-    }
-
-    public function __unset($name)
-    {
-        $this->_processRealInstance();
-        unset($this->value[$name]);
-    }
-
-    public function __toString()
-    {
-        $this->_processRealInstance();
-        return $this->value . '';
-    }
-
-    public function current()
-    {
-        $this->_processRealInstance();
-        return current($this->value);
-    }
-
-    public function next()
-    {
-        $this->_processRealInstance();
-        return next($this->value);
-    }
-
-    public function key()
-    {
-        $this->_processRealInstance();
-        return key($this->value);
-    }
-
-    public function valid()
-    {
-        return $this->current() !== false;
-    }
-
-    public function rewind()
-    {
-        $this->_processRealInstance();
-        return reset($this->value);
-    }
-
-    public function count()
-    {
-        $this->_processRealInstance();
-        return is_countable($this->value) ? count($this->value) : (isset($this->value) ? 1 : 0);
-    }
-}
