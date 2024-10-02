@@ -1,1 +1,51 @@
 parameters:
+	ignoreErrors:
+		-
+			message: "#^Class AUS\\\\SsiInclude\\\\Proxy\\\\Proxy implements generic interface Iterator but does not specify its types\\: TKey, TValue$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__call\\(\\) has parameter \\$arguments with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__call\\(\\) has parameter \\$name with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__get\\(\\) has parameter \\$name with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__invoke\\(\\) has parameter \\$arguments with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__isset\\(\\) has parameter \\$name with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__set\\(\\) has parameter \\$name with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__set\\(\\) has parameter \\$value with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Method AUS\\\\SsiInclude\\\\Proxy\\\\Proxy\\:\\:__unset\\(\\) has parameter \\$name with no type specified\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Parameter \\#1 \\$callback of function call_user_func expects callable\\(\\)\\: mixed, array\\{mixed, mixed\\} given\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php

@@ -20,7 +20,9 @@ use Webimpress\SafeWriter\FileWriter;
 class RenderIncludeViewHelper extends RenderViewHelper
 {
     public const SSI_INCLUDE_DIR = '/typo3temp/tx_ssiinclude/';
+
     public const METHOD_SSI = 'ssi';
+
     public const METHOD_ESI = 'esi';
 
     protected static function getContext(): Context
@@ -73,6 +75,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
         if ($method === self::METHOD_ESI) {
             return '<esi:include src="' . $reqUrl . '" />';
         }
+
         return '<!--# include wait="yes" virtual="' . $reqUrl . '" -->';
     }
 

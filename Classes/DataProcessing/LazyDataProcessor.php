@@ -23,7 +23,16 @@ class LazyDataProcessor implements DataProcessorInterface
         $this->contentDataProcessor = GeneralUtility::makeInstance(ContentDataProcessor::class);
     }
 
-    public function process(ContentObjectRenderer $cObj, array $contentObjectConfiguration, array $processorConfiguration, array $processedData)
+    /**
+     * Process content object data
+     *
+     * @param ContentObjectRenderer $cObj The data of the content element or page
+     * @param array<mixed> $contentObjectConfiguration The configuration of Content Object
+     * @param array<mixed> $processorConfiguration The configuration of this processor
+     * @param array<mixed> $processedData Key/value store of processed data (e.g. to be passed to a Fluid View)
+     * @return array<mixed> the processed data as key/value store
+     */
+    public function process(ContentObjectRenderer $cObj, array $contentObjectConfiguration, array $processorConfiguration, array $processedData): array
     {
         $realProcessedData = 'LazyDataProcessor $realProcessedData';
         $variables = $processorConfiguration['variables']; // given variable names to proxy
@@ -41,11 +50,12 @@ class LazyDataProcessor implements DataProcessorInterface
                         ]];
                         $realProcessedData = $this->contentDataProcessor->process($cObj, $configuration, $processedData);
                     }
+
                     return $realProcessedData[$variableName] ?? null;
                 });
             }
         }
+
         return $processedData;
     }
 }
-

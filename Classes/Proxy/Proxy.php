@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\Proxy;
 
-/**
- * @template TKey
- * @template-covariant TValue
- * @template-implements \Traversable<TKey, TValue>
- */
-final class Proxy implements \Iterator, \Countable
+use Iterator;
+use Countable;
+use Stringable;
+use Closure;
+
+final class Proxy implements Iterator, Countable, Stringable
 {
-    private ?\Closure $callback = null;
     /** @var mixed */
     private $value;
 
-    public function __construct(\Closure $callback)
+    public function __construct(private ?Closure $callback)
     {
-        $this->callback = $callback;
     }
 
     private function processRealInstance(): void
@@ -100,7 +98,7 @@ final class Proxy implements \Iterator, \Countable
         reset($this->value);
     }
 
-    public function count()
+    public function count(): int
     {
         $this->processRealInstance();
         return is_countable($this->value) ? count($this->value) : (isset($this->value) ? 1 : 0);
