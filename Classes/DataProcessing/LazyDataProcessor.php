@@ -29,16 +29,20 @@ class LazyDataProcessor implements DataProcessorInterface
         $variables .= ',' . $cObj->stdWrapValue('as', $processorConfiguration['proxiedProcessor.'] ?? [], ''); // invert variable name to proxy
 
         foreach (GeneralUtility::trimExplode(',', $variables, true) as $variableName) {
-            $processedData[$variableName] = new Proxy(function () use ($cObj, $processedData, $processorConfiguration, &$realProcessedData, $variableName) {
-                if ($realProcessedData === 'LazyDataProcessor $realProcessedData') {
-                    $configuration = ['dataProcessing.' => [
-                        '10' => $processorConfiguration['proxiedProcessor'],
-                        '10.' => $processorConfiguration['proxiedProcessor.'],
-                    ]];
-                    $realProcessedData = $this->contentDataProcessor->process($cObj, $configuration, $processedData);
-                }
-                return $realProcessedData[$variableName] ?? null;
-            });
+            // don't overwrite existing variables with proxies
+            // your data processor should be implemented in a way that it doesn't overwrite existing variables
+            if (!array_key_exists($variableName, $processedData)) {
+                $processedData[$variableName] = new Proxy(function () use ($cObj, $processedData, $processorConfiguration, &$realProcessedData, $variableName) {
+                    if ($realProcessedData === 'LazyDataProcessor $realProcessedData') {
+                        $configuration = ['dataProcessing.' => [
+                            '10' => $processorConfiguration['proxiedProcessor'],
+                            '10.' => $processorConfiguration['proxiedProcessor.'],
+                        ]];
+                        $realProcessedData = $this->contentDataProcessor->process($cObj, $configuration, $processedData);
+                    }
+                    return $realProcessedData[$variableName] ?? null;
+                });
+            }
         }
         return $processedData;
     }
