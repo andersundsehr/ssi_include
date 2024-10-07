@@ -71,7 +71,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
         }
 
         $method = self::getExtensionConfiguration()->get('ssi_include', 'method') ?: self::METHOD_SSI;
-        $reqUrl = $basePath . '?ssi_include=' . $filename;
+        $reqUrl = $basePath . '?ssi_include=' . $filename . '&originalRequestUri=' . urlencode($_SERVER['REQUEST_URI']);
         if ($method === self::METHOD_ESI) {
             return '<esi:include src="' . $reqUrl . '" />';
         }
