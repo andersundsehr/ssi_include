@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\ViewHelpers;
 
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use Webimpress\SafeWriter\Exception\ExceptionInterface;
 use Closure;
 use AUS\SsiInclude\Event\RenderedEvent;
@@ -11,7 +12,6 @@ use Exception;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\ViewHelpers\RenderViewHelper;
@@ -21,9 +21,18 @@ class RenderIncludeViewHelper extends RenderViewHelper
 {
     public const SSI_INCLUDE_DIR = '/typo3temp/tx_ssiinclude/';
 
+    public const METHOD_SSI = 'ssi';
+
+    public const METHOD_ESI = 'esi';
+
     protected static function getContext(): Context
     {
         return GeneralUtility::makeInstance(Context::class);
+    }
+
+    protected static function getExtensionConfiguration(): ExtensionConfiguration
+    {
+        return GeneralUtility::makeInstance(ExtensionConfiguration::class);
     }
 
     public function initializeArguments(): void
@@ -61,7 +70,13 @@ class RenderIncludeViewHelper extends RenderViewHelper
             GeneralUtility::fixPermissions($absolutePath);
         }
 
-        return '<!--# include wait="yes" virtual="' . $basePath . '?ssi_include=' . $filename . '" -->';
+        $method = self::getExtensionConfiguration()->get('ssi_include', 'method') ?: self::METHOD_SSI;
+        $reqUrl = $basePath . '?ssi_include=' . $filename . '&originalRequestUri=' . urlencode((string) $_SERVER['REQUEST_URI']);
+        if ($method === self::METHOD_ESI) {
+            return '<esi:include src="' . $reqUrl . '" />';
+        }
+
+        return '<!--# include wait="yes" virtual="' . $reqUrl . '" -->';
     }
 
     private static function shouldRenderFile(string $absolutePath, int $cacheLifeTime): bool

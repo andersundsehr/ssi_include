@@ -1,0 +1,2 @@
+# cat=Configuration; type=options[SSI=ssi, ESI=esi]; label=Include method: Select the method of inclusion technique: Edge Side Include (Varnish) or Server Side Include.
+method =
