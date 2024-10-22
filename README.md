@@ -94,7 +94,7 @@ If you include want to render the same partial with diffrent arguments it will s
 ### Using the LazyDataProcessor to increase the Performance even more.
 
 #### before:
-````typoscript
+````ts
 10 = FLUIDTEMPLATE
 10 {
   #...
@@ -108,7 +108,7 @@ If you include want to render the same partial with diffrent arguments it will s
 ````
 
 #### after:
-````typoscript
+````ts
 10 = FLUIDTEMPLATE
 10 {
   #...
