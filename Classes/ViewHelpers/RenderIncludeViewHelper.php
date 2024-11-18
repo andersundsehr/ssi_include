@@ -53,7 +53,8 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
         $filename = static::getSiteName() . '_' . static::getLangauge() . '_' . $name;
         $reverseProxyPrefix = '/' . trim($GLOBALS['TYPO3_CONF_VARS']['SYS']['reverseProxyPrefix'] ?? '', '/') . '/';
-        $basePath = rtrim($reverseProxyPrefix, '/') . self::SSI_INCLUDE_DIR . $filename;
+        $basePath = self::SSI_INCLUDE_DIR . $filename;
+        $includePath = rtrim($reverseProxyPrefix, '/') . $basePath;
         $absolutePath = Environment::getPublicPath() . $basePath;
         if (self::shouldRenderFile($absolutePath, $arguments['cacheLifeTime'])) {
             $html = parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
@@ -72,7 +73,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
         }
 
         $method = self::getExtensionConfiguration()->get('ssi_include', 'method') ?: self::METHOD_SSI;
-        $reqUrl = $basePath . '?ssi_include=' . $filename . '&originalRequestUri=' . urlencode((string) $_SERVER['REQUEST_URI']);
+        $reqUrl = $includePath . '?ssi_include=' . $filename . '&originalRequestUri=' . urlencode((string)GeneralUtility::getIndpEnv('REQUEST_URI'));
         if ($method === self::METHOD_ESI) {
             return '<esi:include src="' . $reqUrl . '" />';
         }
@@ -99,7 +100,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
      */
     private static function validateName(array $arguments): string
     {
-        if (ctype_alnum((string) $arguments['name'])) {
+        if (ctype_alnum((string)$arguments['name'])) {
             return $arguments['name'];
         }
 
