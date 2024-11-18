@@ -52,7 +52,8 @@ class RenderIncludeViewHelper extends RenderViewHelper
         $name = self::validateName($arguments);
 
         $filename = static::getSiteName() . '_' . static::getLangauge() . '_' . $name;
-        $basePath = self::SSI_INCLUDE_DIR . $filename;
+        $reverseProxyPrefix = '/' . trim($GLOBALS['TYPO3_CONF_VARS']['SYS']['reverseProxyPrefix'] ?? '', '/') . '/';
+        $basePath = rtrim($reverseProxyPrefix, '/') . self::SSI_INCLUDE_DIR . $filename;
         $absolutePath = Environment::getPublicPath() . $basePath;
         if (self::shouldRenderFile($absolutePath, $arguments['cacheLifeTime'])) {
             $html = parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
