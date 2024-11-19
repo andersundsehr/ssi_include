@@ -1,2 +1,4 @@
 # cat=Configuration; type=options[SSI=ssi, ESI=esi]; label=Include method: Select the method of inclusion technique: Edge Side Include (Varnish) or Server Side Include.
 method =
+# cat=Configuration; type=boolean; label=Completly disable the extension. This will disable the rendering of the ssi/esi tags. and instead render the partial as normal
+disabled = false

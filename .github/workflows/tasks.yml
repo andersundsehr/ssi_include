@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload EXT:ssi_include to TER
         run: |
-          sed -i 's/\\AUS\\SsiInclude\\Utility\\VersionUtility::getVersion()/'\''${{ steps.get_version.outputs.VERSION }}'\''/g' ext_emconf.php \
+          sed -i 's/InstalledVersions::getPrettyVersion('\''andersundsehr\/ssi-include'\'')/'\''${{ steps.get_version.outputs.VERSION }}'\''/g' ext_emconf.php \
           && git config --global user.email "no@one" \
           && git config --global user.name "No One" \
           && git add ext_emconf.php \

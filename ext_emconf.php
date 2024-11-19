@@ -1,6 +1,6 @@
 <?php
 
-use AUS\SsiInclude\Utility\VersionUtility;
+use Composer\InstalledVersions;
 
 /** @var string $_EXTKEY */
 $EM_CONF[$_EXTKEY] = [
@@ -12,7 +12,7 @@ $EM_CONF[$_EXTKEY] = [
     'author_company' => 'anders und sehr GmbH',
     'state' => 'stable',
     'clearCacheOnLoad' => 0,
-    'version' => VersionUtility::getVersion(),
+    'version' =>  InstalledVersions::getPrettyVersion('andersundsehr/ssi-include'),
     'constraints' => [
         'depends' => [
             'typo3' => '10.4.0-11.99.99',
