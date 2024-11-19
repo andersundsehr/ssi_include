@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\ViewHelpers;
 
-use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
-use Webimpress\SafeWriter\Exception\ExceptionInterface;
-use Closure;
 use AUS\SsiInclude\Event\RenderedEvent;
+use Closure;
 use Exception;
+use Override;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
@@ -17,6 +18,9 @@ use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\ViewHelpers\RenderViewHelper;
 use Webimpress\SafeWriter\FileWriter;
 
+use function assert;
+
+#[Autoconfigure(public: true)]
 class RenderIncludeViewHelper extends RenderViewHelper
 {
     public const SSI_INCLUDE_DIR = '/typo3temp/tx_ssiinclude/';
@@ -25,14 +29,10 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
     public const METHOD_ESI = 'esi';
 
-    protected static function getContext(): Context
-    {
-        return GeneralUtility::makeInstance(Context::class);
-    }
-
-    protected static function getExtensionConfiguration(): ExtensionConfiguration
-    {
-        return GeneralUtility::makeInstance(ExtensionConfiguration::class);
+    public function __construct(
+        private readonly Context $context,
+        private readonly ExtensionConfiguration $extensionConfiguration,
+    ) {
     }
 
     public function initializeArguments(): void
@@ -43,22 +43,41 @@ class RenderIncludeViewHelper extends RenderViewHelper
     }
 
     /**
-     * @param array<string, mixed> $arguments
-     * @throws Exception
-     * @throws ExceptionInterface
+     * @deprecated can be removed if parent class dose not have renderStatic anymore.
      */
+    #[Override]
     public static function renderStatic(array $arguments, Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
     {
-        $name = self::validateName($arguments);
+        $isDisabled = (bool)GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('ssi_include', 'disabled');
+        if ($isDisabled) {
+            return parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
+        }
 
-        $filename = static::getSiteName() . '_' . static::getLangauge() . '_' . $name;
+        $self = GeneralUtility::makeInstance(self::class);
+        assert($self instanceof self);
+        return $self->renderNonStatic($arguments, $renderChildrenClosure, $renderingContext);
+    }
+
+    /**
+     * @param array<string, mixed>|null $arguments
+     */
+    public function renderNonStatic(?array $arguments = null, ?Closure $renderChildrenClosure = null, ?RenderingContextInterface $renderingContext = null): string
+    {
+        $this->arguments = $arguments ?? $this->arguments;
+        $this->renderingContext = $renderingContext ?? $this->renderingContext;
+        $renderChildrenClosure ??= $this->buildRenderChildrenClosure();
+
+        $name = $this->validateName($this->arguments);
+
+        $filename = $this->getSiteName() . '_' . $this->getLangauge() . '_' . $name;
         $reverseProxyPrefix = '/' . trim($GLOBALS['TYPO3_CONF_VARS']['SYS']['reverseProxyPrefix'] ?? '', '/') . '/';
         $basePath = self::SSI_INCLUDE_DIR . $filename;
         $includePath = rtrim($reverseProxyPrefix, '/') . $basePath;
         $absolutePath = Environment::getPublicPath() . $basePath;
-        if (self::shouldRenderFile($absolutePath, $arguments['cacheLifeTime'])) {
-            $html = parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
-            if (self::isBackendUser()) {
+        if ($this->shouldRenderFile($absolutePath, $this->arguments['cacheLifeTime'])) {
+            $html = parent::renderStatic($this->arguments, $renderChildrenClosure, $this->renderingContext);
+
+            if ($this->isBackendUser()) {
                 return $html;
             }
 
@@ -67,12 +86,12 @@ class RenderIncludeViewHelper extends RenderViewHelper
             $eventDispatcher->dispatch($renderedHtmlEvent);
             $html = $renderedHtmlEvent->getHtml();
 
-            @mkdir(dirname($absolutePath), (int)octdec((string)$GLOBALS['TYPO3_CONF_VARS']['SYS']['folderCreateMask']), true);
+            GeneralUtility::mkdir_deep(dirname($absolutePath));
             FileWriter::writeFile($absolutePath, $html);
             GeneralUtility::fixPermissions($absolutePath);
         }
 
-        $method = self::getExtensionConfiguration()->get('ssi_include', 'method') ?: self::METHOD_SSI;
+        $method = $this->extensionConfiguration->get('ssi_include', 'method') ?: self::METHOD_SSI;
         $reqUrl = $includePath . '?ssi_include=' . $filename . '&originalRequestUri=' . urlencode((string)GeneralUtility::getIndpEnv('REQUEST_URI'));
         if ($method === self::METHOD_ESI) {
             return '<esi:include src="' . $reqUrl . '" />';
@@ -81,7 +100,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
         return '<!--# include wait="yes" virtual="' . $reqUrl . '" -->';
     }
 
-    private static function shouldRenderFile(string $absolutePath, int $cacheLifeTime): bool
+    private function shouldRenderFile(string $absolutePath, int $cacheLifeTime): bool
     {
         if (!file_exists($absolutePath)) {
             return true;
@@ -91,14 +110,14 @@ class RenderIncludeViewHelper extends RenderViewHelper
             return true;
         }
 
-        return self::isBackendUser();
+        return $this->isBackendUser();
     }
 
     /**
      * @param array<string, mixed> $arguments
      * @throws Exception
      */
-    private static function validateName(array $arguments): string
+    private function validateName(array $arguments): string
     {
         if (ctype_alnum((string)$arguments['name'])) {
             return $arguments['name'];
@@ -107,17 +126,17 @@ class RenderIncludeViewHelper extends RenderViewHelper
         throw new Exception(sprintf('Only Alphanumeric characters allowed got: "%s"', $arguments['name']));
     }
 
-    protected static function getLangauge(): int
+    protected function getLangauge(): int
     {
-        return self::getContext()->getPropertyFromAspect('language', 'id');
+        return $this->context->getPropertyFromAspect('language', 'id');
     }
 
-    protected static function isBackendUser(): bool
+    protected function isBackendUser(): bool
     {
-        return self::getContext()->getPropertyFromAspect('backend.user', 'isLoggedIn');
+        return $this->context->getPropertyFromAspect('backend.user', 'isLoggedIn');
     }
 
-    protected static function getSiteName(): string
+    protected function getSiteName(): string
     {
         return $GLOBALS['TYPO3_REQUEST']->getAttribute('site')->getIdentifier();
     }
