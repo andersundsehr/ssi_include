@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace AUS\SsiInclude\ViewHelpers;
 
 use AUS\SsiInclude\Event\RenderedEvent;
+use AUS\SsiInclude\Event\ShouldRenderFileEvent;
 use Exception;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\ViewHelpers\RenderViewHelper;
@@ -45,13 +45,16 @@ class RenderIncludeViewHelper extends RenderViewHelper
         $filename = static::getSiteName() . '_' . static::getLangauge() . '_' . $name;
         $basePath = self::SSI_INCLUDE_DIR . $filename;
         $absolutePath = Environment::getPublicPath() . $basePath;
-        if (self::shouldRenderFile($absolutePath, $arguments['cacheLifeTime'])) {
+        $eventDispatcher = GeneralUtility::makeInstance(EventDispatcher::class);
+        $shouldRender = self::shouldRenderFile($absolutePath, $arguments['cacheLifeTime']);
+        $renderFileEvent = new ShouldRenderFileEvent($shouldRender);
+        $eventDispatcher->dispatch($renderFileEvent);
+        if ($renderFileEvent->shouldRender()) {
             $html = parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
             if (self::isBackendUser()) {
                 return $html;
             }
 
-            $eventDispatcher = GeneralUtility::makeInstance(EventDispatcher::class);
             $renderedHtmlEvent = new RenderedEvent($html);
             $eventDispatcher->dispatch($renderedHtmlEvent);
             $html = $renderedHtmlEvent->getHtml();
