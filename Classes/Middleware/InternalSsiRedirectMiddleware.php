@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\Middleware;
 
+use AUS\SsiInclude\Cache\Frontend\SsiIncludeCacheFrontend;
 use AUS\SsiInclude\ViewHelpers\RenderIncludeViewHelper;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,8 +21,8 @@ class InternalSsiRedirectMiddleware implements MiddlewareInterface
         if (isset($request->getQueryParams()['ssi_include'])) {
             $originalRequestUri = new Uri($request->getQueryParams()['originalRequestUri'] ?? '');
             $ssiInclude = $request->getQueryParams()['ssi_include'];
-            if (!preg_match('/^(\w+)$/', (string) $ssiInclude)) {
-                return new HtmlResponse('ssi_include invalid', 400);
+            if (!preg_match(SsiIncludeCacheFrontend::PATTERN_ENTRYIDENTIFIER, (string) $ssiInclude)) {
+                return new HtmlResponse('ssi_include invalid ' . $ssiInclude, 400);
             }
 
             $cacheFileName = RenderIncludeViewHelper::SSI_INCLUDE_DIR . $ssiInclude;

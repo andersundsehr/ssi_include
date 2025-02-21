@@ -60,7 +60,7 @@ location @sfc {
 And now the fun part. You can replace any partial rendering with the ViewHelper ``s:renderInclude``.  
 That Partial will only be rendered once every 5 minutes for the complete Site (Site Configuration Site (not Page)).  
 The only differentiation will be done by **site config**, **language** and the provided **name**.  
-Optionally, you can add **cacheLifeTime** to define the lifetime of the partial in seconds.
+Optionally, you can add **cacheLifeTime** to define the lifetime of the partial in seconds and **cacheTags** to invalidate the cache by flushByTags.
 If you include want to render the same partial with diffrent arguments it will still be the same content if you have the same name.
 
 #### before:
@@ -85,11 +85,25 @@ If you include want to render the same partial with diffrent arguments it will s
 
 <f:section name="Main">
   <div class="something something">
-    <s:renderInclude name="mainMenu" cacheLifeTime="900" partial="Menus/MainMenu" arguments="{_all}"/>
+    <s:renderInclude name="mainMenu" cacheTags="{0: 'someTag_0'}" cacheLifeTime="900" partial="Menus/MainMenu" arguments="{_all}"/>
   </div>
 </f:section>
 ````
 
+### The Cache options
+
+#### storeData
+
+If you want to store the data in the cache to receive by get.
+This defaults to on, but if you want to spare some space you can disable it.
+
+#### ssiIncludeDir
+
+Public directory where the SSI files are stored.
+
+#### concreteCache
+
+An configured taggable cache to use as the cache backends backbone 
 
 ### Using the LazyDataProcessor to increase the Performance even more.
 

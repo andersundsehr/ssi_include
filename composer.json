@@ -20,7 +20,8 @@
     "composer/composer": "^2.5.5",
     "pluswerk/grumphp-config": "^7.0",
     "saschaegerer/phpstan-typo3": "^1.10.0",
-    "ssch/typo3-rector": "^2.5.0"
+    "ssch/typo3-rector": "^2.5.0",
+    "typo3/testing-framework": "^7.1.1 || ^8.2.7"
   },
   "replace": {
     "typo3-ter/ssi-include": "self.version"
@@ -28,6 +29,11 @@
   "autoload": {
     "psr-4": {
       "AUS\\SsiInclude\\": "Classes/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "AUS\\SsiInclude\\Tests\\": "Tests/"
     }
   },
   "config": {
@@ -45,6 +51,9 @@
     "typo3/cms": {
       "extension-key": "ssi_include"
     }
+  },
+  "scripts": {
+    "test": "@php ./vendor/bin/phpunit"
   },
   "ter-require": {
     "webimpress/safe-writer": "^2.2.0"
