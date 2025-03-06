@@ -9,6 +9,8 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class SsiIncludeCacheFrontendTest extends UnitTestCase
 {
+    protected bool $resetSingletonInstances = true;
+
     /**
      * @test
      */

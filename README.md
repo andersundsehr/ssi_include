@@ -101,10 +101,6 @@ This defaults to on, but if you want to spare some space you can disable it.
 
 Public directory where the SSI files are stored.
 
-#### concreteCache
-
-An configured taggable cache to use as the cache backends backbone 
-
 ### Using the LazyDataProcessor to increase the Performance even more.
 
 #### before:

@@ -6,23 +6,15 @@ namespace AUS\SsiInclude\Cache\Backend;
 
 use AUS\SsiInclude\Utility\FilenameUtility;
 use InvalidArgumentException;
-use TYPO3\CMS\Core\Cache\Backend\AbstractBackend;
-use TYPO3\CMS\Core\Cache\Backend\BackendInterface;
-use TYPO3\CMS\Core\Cache\Backend\TaggableBackendInterface;
-use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
-use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Webimpress\SafeWriter\Exception\ExceptionInterface;
 use Webimpress\SafeWriter\FileWriter;
 
-class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendInterface
+class SsiIncludeCacheBackend extends Typo3DatabaseBackend
 {
-    private readonly TaggableBackendInterface $concrete;
-
-    private string $concreteCache = 'aus_ssi_include_concrete_cache';
-
     private readonly FilenameUtility $filenameUtility;
 
     /**
@@ -35,30 +27,26 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
     /**
      * @inheritdoc
      * @param array<string, mixed> $options
-     * @throws NoSuchCacheException
      */
     public function __construct($context, array $options = [])
     {
         parent::__construct($context, $options);
 
         $this->filenameUtility = GeneralUtility::makeInstance(FilenameUtility::class);
+    }
 
-        $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
-        $concrete = $cacheManager->getCache($this->concreteCache)->getBackend();
-        assert($concrete instanceof BackendInterface);
-        assert($concrete instanceof TaggableBackendInterface);
-        $this->concrete = $concrete;
+    public function getSsiIncludeDir(): string
+    {
+        return $this->ssiIncludeDir;
     }
 
     /**
-     * The cache identifier of the concrete cache which is used to save
-     * the data. If storeData is false, it also creates an empty cache entry
-     * to include with caching framework and have the identifier tied to the cache tags and lifetime
+     * @return list<string>
      */
-    public function setConcreteCache(string $concreteCache): void
+    private function getSsiIncludeDirFiles(): array
     {
-        $this->concreteCache = $concreteCache;
+        $publicIncludeDir = Environment::getPublicPath() . $this->ssiIncludeDir;
+        return glob($publicIncludeDir . '*.html') ?: [];
     }
 
     /**
@@ -78,19 +66,6 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
         $this->storeData = $storeData;
     }
 
-    public function getSsiIncludeDir(): string
-    {
-        return $this->ssiIncludeDir;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setCache(FrontendInterface $cache): void
-    {
-        $this->cache = $cache;
-    }
-
     /**
      * @inheritdoc
      * @param array<string> $tags
@@ -102,6 +77,8 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
             throw new InvalidArgumentException('Data must be a string', 1616420133);
         }
 
+        parent::set($entryIdentifier, $this->storeData ? $data : '', $tags, $lifetime);
+
         $absolutePath = $this->filenameUtility->getAbsoluteFilename($entryIdentifier);
 
         GeneralUtility::mkdir_deep(dirname($absolutePath));
@@ -109,16 +86,6 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
 
         FileWriter::writeFile($absolutePath, $data);
         GeneralUtility::fixPermissions($absolutePath);
-
-        $this->concrete->set($entryIdentifier, $this->storeData ? $data : '', $tags, $lifetime);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function get($entryIdentifier): false|string
-    {
-        return $this->concrete->get($entryIdentifier);
     }
 
     /**
@@ -127,7 +94,7 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
      */
     public function has($entryIdentifier): bool
     {
-        $data = $this->concrete->has($entryIdentifier);
+        $data = parent::has($entryIdentifier);
         if (!$data) {
             return false;
         }
@@ -147,7 +114,7 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
             unlink($absoluteFile);
         }
 
-        return $this->concrete->remove($entryIdentifier);
+        return parent::remove($entryIdentifier);
     }
 
     /**
@@ -159,7 +126,7 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
             unlink($file);
         }
 
-        $this->concrete->flush();
+        parent::flush();
     }
 
     /**
@@ -169,7 +136,7 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
     public function collectGarbage(): void
     {
         // remove outdated things
-        $this->concrete->collectGarbage();
+        parent::collectGarbage();
 
         // get all files, and the file that has no entry remove them
         $files = $this->getSsiIncludeDirFiles();
@@ -200,7 +167,7 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
      */
     public function flushByTags(array $tags): void
     {
-        $this->concrete->flushByTags($tags);
+        parent::flushByTags($tags);
         foreach ($tags as $tag) {
             $this->flushByTag($tag);
         }
@@ -213,15 +180,6 @@ class SsiIncludeCacheBackend extends AbstractBackend implements TaggableBackendI
      */
     public function findIdentifiersByTag($tag): array
     {
-        return $this->concrete->findIdentifiersByTag($tag);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function getSsiIncludeDirFiles(): array
-    {
-        $publicIncludeDir = Environment::getPublicPath() . $this->ssiIncludeDir;
-        return glob($publicIncludeDir . '*.html') ?: [];
+        return parent::findIdentifiersByTag($tag);
     }
 }

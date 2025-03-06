@@ -64,10 +64,6 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
         assert($cacheManager instanceof CacheManager);
         $cacheManager->setCacheConfigurations([
-            'aus_ssi_include_concrete_cache' => [
-                'frontend' => VariableFrontend::class,
-                'backend' => Typo3DatabaseBackend::class,
-            ],
             'aus_ssi_include_cache' => [
                 'frontend' => SsiIncludeCacheFrontend::class,
                 'backend' => SsiIncludeCacheBackend::class,
@@ -84,11 +80,11 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
      */
     public function cacheTableExists(): void
     {
-        $connection = $this->getConnectionPool()->getConnectionForTable('cache_aus_ssi_include_concrete_cache');
-        $query = $connection->executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='cache_aus_ssi_include_concrete_cache'");
+        $connection = $this->getConnectionPool()->getConnectionForTable('cache_aus_ssi_include_cache');
+        $query = $connection->executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='cache_aus_ssi_include_cache'");
         $result = $query->fetchAssociative();
 
-        self::assertNotEmpty($result, 'The cache_ssi_cache table was not created.');
+        self::assertNotEmpty($result, 'The cache_aus_ssi_include_cache table was not created.');
     }
 
     /**
