@@ -20,7 +20,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.composer/cache/files
           key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
