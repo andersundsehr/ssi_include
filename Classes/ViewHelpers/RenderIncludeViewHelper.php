@@ -6,6 +6,7 @@ namespace AUS\SsiInclude\ViewHelpers;
 
 use AUS\SsiInclude\Cache\Frontend\SsiIncludeCacheFrontend;
 use AUS\SsiInclude\Event\RenderedEvent;
+use AUS\SsiInclude\Register\LastRenderedContentRegister;
 use AUS\SsiInclude\Utility\FilenameUtility;
 use Closure;
 use Exception;
@@ -40,6 +41,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
         private readonly Context $context,
         private readonly CacheManager $cacheManager,
         private readonly FilenameUtility $filenameUtility,
+        private readonly LastRenderedContentRegister $lastRenderedContentRegister,
     ) {
     }
 
@@ -84,7 +86,10 @@ class RenderIncludeViewHelper extends RenderViewHelper
         $renderChildrenClosure ??= $this->buildRenderChildrenClosure();
 
         if ($this->isBackendUser()) {
-            return parent::renderStatic($this->arguments, $renderChildrenClosure, $this->renderingContext);
+            $content = parent::renderStatic($this->arguments, $renderChildrenClosure, $this->renderingContext);
+            // Put the code to register to use in InternalSsiRedirectMiddleware if the site comes from page cache
+            $this->lastRenderedContentRegister->set($content);
+            return $content;
         }
 
         // Get frontend user groups for their group dependent include file

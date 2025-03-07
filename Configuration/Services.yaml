@@ -7,3 +7,9 @@ services:
   AUS\SsiInclude\:
     resource: '../Classes/*'
     exclude: '../Classes/**/{Model,Dto}/*'
+
+  AUS\SsiInclude\EventListener\AfterCacheableContentIsGeneratedEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'ssi-include/after-cacheable-content-is-generated-event-listener'
+        event: TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent
