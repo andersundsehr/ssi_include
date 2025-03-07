@@ -10,7 +10,7 @@ use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent;
 
-readonly class AfterCacheableContentIsGeneratedEventListener
+class AfterCacheableContentIsGeneratedEventListener
 {
     /**
      * Disable page caching for logged in backend users to prevent caching of the SSI include content to the page.
