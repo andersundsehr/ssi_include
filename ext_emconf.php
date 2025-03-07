@@ -11,7 +11,6 @@ $EM_CONF[$_EXTKEY] = [
     'author_email' => 'm.vogel@andersundsehr.com',
     'author_company' => 'anders und sehr GmbH',
     'state' => 'stable',
-    'clearCacheOnLoad' => 0,
     'version' =>  InstalledVersions::getPrettyVersion('andersundsehr/ssi-include'),
     'constraints' => [
         'depends' => [

@@ -49,7 +49,7 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
 
         $files = glob($this->ssiIncludeDir . '*.html');
         if (false === $files) {
-            throw new RuntimeException('Failed to glob files in ' . $this->ssiIncludeDir);
+            throw new RuntimeException('Failed to glob files in ' . $this->ssiIncludeDir, 1642422545);
         }
 
         array_map('unlink', $files);

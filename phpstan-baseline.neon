@@ -1,6 +1,16 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Call to method disableCaching\\(\\) on an unknown class TYPO3\\\\CMS\\\\Frontend\\\\Event\\\\AfterCacheableContentIsGeneratedEvent\\.$#"
+			count: 1
+			path: Classes/EventListener/AfterCacheableContentIsGeneratedEventListener.php
+
+		-
+			message: "#^Parameter \\$event of method AUS\\\\SsiInclude\\\\EventListener\\\\AfterCacheableContentIsGeneratedEventListener\\:\\:__invoke\\(\\) has invalid type TYPO3\\\\CMS\\\\Frontend\\\\Event\\\\AfterCacheableContentIsGeneratedEvent\\.$#"
+			count: 1
+			path: Classes/EventListener/AfterCacheableContentIsGeneratedEventListener.php
+
+		-
 			message: "#^Class AUS\\\\SsiInclude\\\\Proxy\\\\Proxy implements generic interface Iterator but does not specify its types\\: TKey, TValue$#"
 			count: 1
 			path: Classes/Proxy/Proxy.php
@@ -49,3 +59,8 @@ parameters:
 			message: "#^Parameter \\#1 \\$callback of function call_user_func expects callable\\(\\)\\: mixed, array\\{mixed, mixed\\} given\\.$#"
 			count: 1
 			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Class TYPO3\\\\CMS\\\\Frontend\\\\Event\\\\AfterCacheableContentIsGeneratedEvent not found\\.$#"
+			count: 1
+			path: Configuration/Services.php
