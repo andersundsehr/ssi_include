@@ -138,7 +138,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
             return $arguments['name'];
         }
 
-        throw new Exception(sprintf('Only Alphanumeric characters allowed got: "%s"', $arguments['name']));
+        throw new Exception(sprintf('Only Alphanumeric characters allowed got: "%s"', $arguments['name']), 9135532467);
     }
 
     /**

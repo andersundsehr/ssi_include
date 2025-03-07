@@ -1,16 +1,67 @@
-imports:
-  - { resource: vendor/pluswerk/grumphp-config/grumphp.yml }
 parameters:
   convention.process_timeout: 240
-  convention.security_checker_blocking: true
-  convention.jsonlint_ignore_pattern: {  }
-  convention.xmllint_ignore_pattern: {  }
-  convention.yamllint_ignore_pattern: {  }
-  convention.phpcslint_ignore_pattern: {  }
-  convention.phpcslint_exclude: {  }
-  convention.xlifflint_ignore_pattern: {  }
-  convention.rector_ignore_pattern: {  }
+  convention.jsonlint_ignore_pattern: []
+  convention.xmllint_ignore_pattern: []
+  convention.yamllint_ignore_pattern: []
+  convention.phpcslint_ignore_pattern: []
+  convention.phpcslint_exclude: []
+  convention.xlifflint_ignore_pattern: []
+  convention.rector_ignore_pattern: []
   convention.rector_enabled: true
-  convention.rector_config: rector.php
+  convention.rector_config: 'rector.php'
   convention.rector_clear-cache: false
-  convention.phpstan_level: null
+  convention.phpstan_level: ~
+
+grumphp:
+  stop_on_failure: false
+  hide_circumvention_tip: true
+  ignore_unstaged_changes: false #brocken
+  process_timeout: "%convention.process_timeout%"
+  ascii:
+    failed: ./vendor/pluswerk/grumphp-config/logo.txt
+    succeeded: ./vendor/pluswerk/grumphp-config/logo.txt
+  tasks:
+    composer:
+      no_check_publish: true
+      with_dependencies: false
+      strict: false
+    composer_normalize:
+      indent_size: 2
+      indent_style: space
+      no_check_lock: false
+      no_update_lock: false
+    git_commit_message:
+      max_subject_width: 120
+      max_body_width: 120
+      enforce_capitalized_subject: false
+    jsonlint:
+      detect_key_conflicts: true
+      ignore_patterns: "%convention.jsonlint_ignore_pattern%"
+    phpcs:
+      standard: "PSR12"
+      warning_severity: 0
+      tab_width: 4
+      exclude: "%convention.phpcslint_exclude%"
+      ignore_patterns: "%convention.phpcslint_ignore_pattern%"
+    phpstan:
+      memory_limit: "-1"
+      level: "%convention.phpstan_level%"
+    phplint: ~
+    xmllint:
+      ignore_patterns: "%convention.xmllint_ignore_pattern%"
+    xlifflint:
+      ignore_patterns: "%convention.xlifflint_ignore_pattern%"
+    plus_bom_fixer:
+      metadata:
+        priority: 1
+    rector:
+      metadata:
+        enabled: "%convention.rector_enabled%"
+      config: "%convention.rector_config%"
+      triggered_by: [ 'php' ]
+      clear_cache: "%convention.rector_clear-cache%"
+      ignore_patterns: "%convention.rector_ignore_pattern%"
+  extensions:
+    - PLUS\GrumPHPBomTask\ExtensionLoader
+    - PLUS\GrumPHPXliffTask\ExtensionLoader
+

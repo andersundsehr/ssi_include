@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\EventListener;
 
+use AUS\SsiInclude\Utility\IsCacheableUtility;
 use Throwable;
-use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
-use TYPO3\CMS\Core\Context\Context;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent;
 
 class AfterCacheableContentIsGeneratedEventListener
@@ -18,15 +16,7 @@ class AfterCacheableContentIsGeneratedEventListener
     public function __invoke(AfterCacheableContentIsGeneratedEvent $event): void
     {
         try {
-            $isDisabled = (bool)GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('ssi_include', 'disabled');
-            if ($isDisabled) {
-                return;
-            }
-
-            $context = GeneralUtility::makeInstance(Context::class);
-            assert($context instanceof Context);
-            $backendUserContext = $context->getAspect('backend.user');
-            if ($backendUserContext->isLoggedIn()) {
+            if (!(new IsCacheableUtility())->usePageCache(null, true)) {
                 $event->disableCaching();
             }
         } catch (Throwable) {
