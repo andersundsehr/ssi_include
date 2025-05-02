@@ -97,7 +97,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
         assert($frontendUser instanceof UserAspect);
         $groupString = '';
         if ($frontendUser->isLoggedIn()) {
-            $groupString = '_' . implode('.', $frontendUser->getGroupIds());
+            $groupString = '_' . implode('-', $frontendUser->getGroupIds());
         }
 
         // generate the cache filename
