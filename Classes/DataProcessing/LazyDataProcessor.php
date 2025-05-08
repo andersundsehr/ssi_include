@@ -35,7 +35,7 @@ class LazyDataProcessor implements DataProcessorInterface
     public function process(ContentObjectRenderer $cObj, array $contentObjectConfiguration, array $processorConfiguration, array $processedData): array
     {
         $realProcessedData = 'LazyDataProcessor $realProcessedData';
-        $variables = $processorConfiguration['variables']; // given variable names to proxy
+        $variables = $processorConfiguration['variables'] ?? ''; // given variable names to proxy
         $variables .= ',' . $cObj->stdWrapValue('as', $processorConfiguration['proxiedProcessor.'] ?? [], ''); // invert variable name to proxy
 
         foreach (GeneralUtility::trimExplode(',', $variables, true) as $variableName) {
