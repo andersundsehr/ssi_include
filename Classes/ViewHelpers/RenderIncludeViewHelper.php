@@ -116,6 +116,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
             $cacheTags = ['tx_ssiinclude_' . $name, ...$this->arguments['cacheTags']];
             $cache->set($filename, $html, $cacheTags, $this->arguments['cacheLifeTime']);
+            $this->lastRenderedContentRegister->set($html);
         }
 
         // generate the variables needed for include commments

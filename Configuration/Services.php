@@ -22,7 +22,7 @@ return static function (ContainerConfigurator $configurator): void {
     if (VersionNumberUtility::convertVersionNumberToInteger(VersionNumberUtility::getNumericTypo3Version()) >= 12000000) {
         $services->set(AfterCacheableContentIsGeneratedEventListener::class)
             ->tag('event.listener', [
-                'identifier' => 'my-extension/some-event-listener',
+                'identifier' => 'ssi_include/after-cacheable-content-is-generated-event-listener',
                 'event' => AfterCacheableContentIsGeneratedEvent::class
             ]);
     }
