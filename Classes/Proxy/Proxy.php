@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\Proxy;
 
+use ArrayAccess;
 use Iterator;
 use Countable;
 use Stringable;
 use Closure;
 
-final class Proxy implements Iterator, Countable, Stringable
+/**
+ * @implements ArrayAccess<int, mixed>
+ */
+final class Proxy implements Iterator, Countable, Stringable, ArrayAccess
 {
-    /** @var mixed */
-    private $value;
+    private mixed $value;
 
     public function __construct(private ?Closure $callback)
     {
@@ -102,5 +105,29 @@ final class Proxy implements Iterator, Countable, Stringable
     {
         $this->processRealInstance();
         return is_countable($this->value) ? count($this->value) : (isset($this->value) ? 1 : 0);
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        $this->processRealInstance();
+        return isset($this->value[$offset]);
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        $this->processRealInstance();
+        return $this->value[$offset] ?? null;
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->processRealInstance();
+        $this->value[$offset] = $value;
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->processRealInstance();
+        unset($this->value[$offset]);
     }
 }
