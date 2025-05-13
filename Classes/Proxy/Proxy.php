@@ -109,21 +109,25 @@ final class Proxy implements Iterator, Countable, Stringable, ArrayAccess
 
     public function offsetExists(mixed $offset): bool
     {
+        $this->processRealInstance();
         return isset($this->value[$offset]);
     }
 
     public function offsetGet(mixed $offset): mixed
     {
+        $this->processRealInstance();
         return $this->value[$offset] ?? null;
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
+        $this->processRealInstance();
         $this->value[$offset] = $value;
     }
 
     public function offsetUnset(mixed $offset): void
     {
+        $this->processRealInstance();
         unset($this->value[$offset]);
     }
 }
