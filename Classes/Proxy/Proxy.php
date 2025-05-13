@@ -10,10 +10,12 @@ use Countable;
 use Stringable;
 use Closure;
 
+/**
+ * @implements ArrayAccess<int, mixed>
+ */
 final class Proxy implements Iterator, Countable, Stringable, ArrayAccess
 {
-    /** @var mixed */
-    private $value;
+    private mixed $value;
 
     public function __construct(private ?Closure $callback)
     {
