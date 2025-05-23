@@ -40,7 +40,21 @@ class InternalSsiRedirectMiddleware implements MiddlewareInterface
                     ->withQueryParams([])
                     ->withUri($request->getUri()->withPath($originalRequestUri->getPath())->withQuery($originalRequestUri->getQuery()));
                 $handler->handle($subRequest);
-                $content = $this->lastRenderedContentRegister->get();
+                $keyParts = explode('_', $ssiInclude);
+                if (isset($keyParts[2])) {
+                    $key = $keyParts[2];
+                    // may strip the .html extension
+                    $position = strpos($key, '.');
+                    if ($position) {
+                        $key = substr($key, 0, strpos($key, '.'));
+                    }
+                    $content = $this->lastRenderedContentRegister->get($key);
+                } elseif (file_exists($absolutePath)) {
+                    $content = file_get_contents($absolutePath);
+                } else {
+                    $content = '<error>EXT:ssi_include error path:' . $ssiInclude . '</error>';
+                }
+
             }
 
             return new HtmlResponse($content ?: '<error>EXT:ssi_include error path:' . $absolutePath . '</error>');

@@ -8,15 +8,21 @@ use TYPO3\CMS\Core\SingletonInterface;
 
 class LastRenderedContentRegister implements SingletonInterface
 {
-    private string $lastRenderedContent = '';
+    /**
+     * @var array<string, string>
+     */
+    private array $lastRenderedContent = [];
 
-    public function set(string $content): void
+    public function set(string $key, string $content): void
     {
-        $this->lastRenderedContent = $content;
+        $this->lastRenderedContent[$key] = $content;
     }
 
-    public function get(): string
+    public function get(string $key): string
     {
-        return $this->lastRenderedContent;
+        if (!isset($this->lastRenderedContent[$key])) {
+            return '';
+        }
+        return $this->lastRenderedContent[$key];
     }
 }

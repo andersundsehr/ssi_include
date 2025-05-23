@@ -85,10 +85,13 @@ class RenderIncludeViewHelper extends RenderViewHelper
         $this->renderingContext = $renderingContext ?? $this->renderingContext;
         $renderChildrenClosure ??= $this->buildRenderChildrenClosure();
 
+        // generate the cache filename
+        $name = $this->validateName($this->arguments);
+
         if ($this->isBackendUser()) {
             $content = parent::renderStatic($this->arguments, $renderChildrenClosure, $this->renderingContext);
             // Put the code to register to use in InternalSsiRedirectMiddleware if the site comes from page cache
-            $this->lastRenderedContentRegister->set($content);
+            $this->lastRenderedContentRegister->set($name, $content);
             return $content;
         }
 
@@ -100,8 +103,6 @@ class RenderIncludeViewHelper extends RenderViewHelper
             $groupString = '_' . implode('-', $frontendUser->getGroupIds());
         }
 
-        // generate the cache filename
-        $name = $this->validateName($this->arguments);
         $filename = $this->getSiteName() . '_' . $this->getLangauge() . '_' . $name . $groupString . '.html';
 
         // If the cache has not the proper entry, generate it
@@ -116,7 +117,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
             $cacheTags = ['tx_ssiinclude_' . $name, ...$this->arguments['cacheTags']];
             $cache->set($filename, $html, $cacheTags, $this->arguments['cacheLifeTime']);
-            $this->lastRenderedContentRegister->set($html);
+            $this->lastRenderedContentRegister->set($name, $html);
         }
 
         // generate the variables needed for include commments
