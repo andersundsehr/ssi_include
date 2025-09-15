@@ -23,6 +23,7 @@ class LastRenderedContentRegister implements SingletonInterface
         if (!isset($this->lastRenderedContent[$key])) {
             return '';
         }
+
         return $this->lastRenderedContent[$key];
     }
 }
