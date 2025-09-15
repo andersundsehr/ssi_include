@@ -3,3 +3,4 @@ public/
 vendor/
 var/
 .phpunit.result.cache
+.idea/
