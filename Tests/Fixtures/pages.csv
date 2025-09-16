@@ -1,0 +1,7 @@
+pages,,,,,
+,uid,pid,title,slug,doktype,is_siteroot
+,1,0,"Test Root Page","/",1,1
+
+be_users,,,,,
+,uid,username,password,admin,tstamp,crdate
+,1,"testuser","$argon2i$v=19$m=65536,t=16,p=1$UnNuaVlJQnNHLkN0dWpOZw$4QQ3I8R9bQ5FYgzJYOo4Ug",1,1640995200,1640995200

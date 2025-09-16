@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\Tests;
 
+use TYPO3\CMS\Core\DataHandling\DataHandler;
 use AUS\SsiInclude\Cache\Backend\SsiIncludeCacheBackend;
 use AUS\SsiInclude\Cache\Frontend\SsiIncludeCacheFrontend;
 use AUS\SsiInclude\Utility\FilenameUtility;
 use Doctrine\DBAL\Exception;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use RuntimeException;
-use TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend;
+use Symfony\Component\Filesystem\Filesystem;
 use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Event\CacheFlushEvent;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
-use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class SsiIncludeCacheBackendTest extends FunctionalTestCase
@@ -37,23 +41,37 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
         $this->initializeCacheFramework();
         // setup always after putenv and the caching framework initialization
         parent::setUp();
+        $this->copySiteConfiguration();
         // now after setup public path is available for fulfil the variable
         $this->ssiIncludeDir = Environment::getPublicPath() . $this->ssiIncludeDir;
         GeneralUtility::mkdir_deep($this->ssiIncludeDir);
         GeneralUtility::fixPermissions($this->ssiIncludeDir);
     }
 
+    private function copySiteConfiguration(): void
+    {
+        $sourcePath = __DIR__ . '/../Fixtures/Sites/';
+        // there the SiteConfiguration::getAllSiteConfigurationFromFiles it looks for our sites if it changes, check the path there
+        $destinationPath = $this->instancePath . '/typo3conf/sites/default/';
+
+        if (!is_dir($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+        }
+
+        (new Filesystem())->copy(
+            $sourcePath . 'config.yaml',
+            $destinationPath . 'config.yaml',
+            true
+        );
+    }
+
     protected function tearDown(): void
     {
         parent::tearDown();
 
-        $files = glob($this->ssiIncludeDir . '*.html');
-        if (false === $files) {
-            throw new RuntimeException('Failed to glob files in ' . $this->ssiIncludeDir, 1642422545);
-        }
-
-        array_map('unlink', $files);
-        @rmdir($this->ssiIncludeDir);
+        $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
+        assert($cacheManager instanceof CacheManager);
+        $cacheManager->flushCaches();
     }
 
     /**
@@ -235,5 +253,190 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
         $data = $cache->get('outdated.html');
         self::assertFalse($data);
         self::assertFileDoesNotExist($this->ssiIncludeDir . 'outdated.html');
+    }
+
+    /**
+     * @test
+     */
+    public function cacheFlushEventRemovesAllFiles(): void
+    {
+        $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
+        assert($cacheManager instanceof CacheManager);
+        $cache = $cacheManager->getCache('aus_ssi_include_cache');
+        $cache->set('cacheFlushEventRemovesAllFiles1.html', 'test', ['tag1']);
+        self::assertTrue($cache->has('cacheFlushEventRemovesAllFiles1.html'));
+        self::assertFileExists($this->ssiIncludeDir . 'cacheFlushEventRemovesAllFiles1.html');
+
+        $orphanedFile = $this->ssiIncludeDir . 'cacheFlushEventRemovesAllFiles2.html';
+        file_put_contents($orphanedFile, '<h1>Orphaned Content</h1>');
+        self::assertFileExists($orphanedFile);
+
+        $eventDispatcher = GeneralUtility::makeInstance(EventDispatcherInterface::class);
+        $event = new CacheFlushEvent(['pages']);
+        $eventDispatcher->dispatch($event);
+
+        self::assertFalse($cache->has('cacheFlushEventRemovesAllFiles1.html'));
+        self::assertFileDoesNotExist($this->ssiIncludeDir . 'cacheFlushEventRemovesAllFiles1.html');
+        self::assertFileDoesNotExist($orphanedFile);
+    }
+
+    /**
+     * @test
+     * @throws NoSuchCacheException
+     */
+    public function noCacheFileCreatedWhenBackendUserIsLoggedIn(): void
+    {
+        #$cacheManager = GeneralUtility::makeInstance(CacheManager::class);
+        #assert($cacheManager instanceof CacheManager);
+        #$cacheManager->flushCaches();
+
+        // Import a page tree with a test page
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/pages.csv');
+
+        // Set extension configuration
+        $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['disabled'] = '0';
+        $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['method'] = 'ssi';
+
+        // Set up TypoScript template for the test page
+        $this->setUpFrontendRootPage(1, [
+            'EXT:ssi_include/Tests/Fixtures/TypoScript/test_page.typoscript'
+        ]);
+
+        // Get expected SSI include filename
+        $expectedFilename = 'default_0_testinclude.html'; // site_language_name_usergroups.html format
+
+        // Verify file doesn't exist before request
+        $absoluteFilename = GeneralUtility::makeInstance(FilenameUtility::class)->getAbsoluteFilename($expectedFilename);
+        if (file_exists($absoluteFilename)) {
+            unlink($absoluteFilename);
+        }
+
+        self::assertFileDoesNotExist($absoluteFilename);
+
+        // Create a ServerRequest with the URI
+        $request = (new InternalRequest());
+        $request = $request->withMethod('GET');
+
+        $context = (new InternalRequestContext())->withBackendUserId(1);
+        $response = $this->executeFrontendSubRequest($request, $context);
+
+        // Verify the response was successful
+        self::assertEquals(200, $response->getStatusCode());
+
+        $responseBody = (string)$response->getBody();
+
+        // When backend user is logged in, content should be rendered directly
+        // and NO SSI include file should be created
+        self::assertStringContainsString('SSI Include Content', $responseBody);
+        self::assertStringContainsString('This content should be cached as SSI include', $responseBody);
+        self::assertStringNotContainsString('<!--# include', $responseBody); // No SSI comment should be present
+
+        // Verify that NO cache file was created
+        self::assertFileDoesNotExist($absoluteFilename);
+
+        // Also verify cache entry was not stored in database
+        $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
+        $cache = $cacheManager->getCache('aus_ssi_include_cache');
+        self::assertFalse($cache->has($expectedFilename));
+    }
+
+    /**
+     * @test
+     * @throws NoSuchCacheException
+     */
+    public function cacheFileCreatedWhenNoBackendUserLoggedIn(): void
+    {
+        // Import a page tree with a test page
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/pages.csv');
+
+        // Set extension configuration
+        $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['disabled'] = '0';
+        $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['method'] = 'ssi';
+
+        // Set up TypoScript template for the test page
+        $this->setUpFrontendRootPage(1, [
+            'EXT:ssi_include/Tests/Fixtures/TypoScript/test_page.typoscript'
+        ]);
+
+        // Get expected SSI include filename
+        $expectedFilename = 'default_0_testinclude.html';
+
+        // Verify file doesn't exist before request
+        $absoluteFilename = GeneralUtility::makeInstance(FilenameUtility::class)->getAbsoluteFilename($expectedFilename);
+        if (file_exists($absoluteFilename)) {
+            unlink($absoluteFilename);
+        }
+
+        self::assertFileDoesNotExist($absoluteFilename);
+
+        // Create a ServerRequest with the URI
+        $request = (new InternalRequest());
+        $request = $request->withMethod('GET');
+
+        $context = new InternalRequestContext();
+        $response = $this->executeFrontendSubRequest($request, $context);
+
+        // Verify the response was successful
+        self::assertEquals(200, $response->getStatusCode());
+
+        $responseBody = (string)$response->getBody();
+
+        // When NO backend user is logged in, SSI include comment should be present
+        self::assertStringContainsString('<!--# include', $responseBody);
+        self::assertStringContainsString('testinclude', $responseBody);
+
+        // Verify that cache file WAS created
+        self::assertFileExists($absoluteFilename);
+
+        // Verify cache file contains the expected content
+        $cacheFileContent = file_get_contents($absoluteFilename);
+        self::assertIsString($cacheFileContent);
+        self::assertStringContainsString('SSI Include Content', $cacheFileContent);
+        self::assertStringContainsString('This content should be cached as SSI include', $cacheFileContent);
+
+        // Verify cache entry was stored in database
+        $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
+        $cache = $cacheManager->getCache('aus_ssi_include_cache');
+        self::assertTrue($cache->has($expectedFilename));
+
+        // Clean up
+        @unlink($absoluteFilename);
+    }
+
+    /**
+     * @test
+     * @throws NoSuchCacheException
+     */
+    public function dataHandlerClearCacheRemovesCacheEntry(): void
+    {
+        $entryIdentifier = 'datahandler_test_entry.html';
+        $data = '<h1>DataHandler Test Content</h1>';
+
+        // Store cache entry first
+        $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
+        assert($cacheManager instanceof CacheManager);
+        $cache = $cacheManager->getCache('aus_ssi_include_cache');
+        assert($cache->getBackend() instanceof SsiIncludeCacheBackend);
+        $cache->set($entryIdentifier, $data);
+
+        // Verify cache entry exists
+        self::assertTrue($cache->has($entryIdentifier));
+        $absoluteFilename = GeneralUtility::makeInstance(FilenameUtility::class)->getAbsoluteFilename($entryIdentifier);
+        self::assertFileExists($absoluteFilename);
+
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/pages.csv');
+
+        // Set up backend user context for DataHandler
+        $backendUser = $this->setUpBackendUser(1);
+        $GLOBALS['BE_USER'] = $backendUser;
+
+        // Use DataHandler to clear cache
+        $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
+        $dataHandler->start([], []);
+        $dataHandler->clear_cacheCmd('all');
+
+        // Verify cache entry was removed
+        self::assertFalse($cache->has($entryIdentifier));
+        self::assertFileDoesNotExist($absoluteFilename);
     }
 }
