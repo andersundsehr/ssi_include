@@ -14,7 +14,6 @@ use Override;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
-use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
@@ -85,10 +84,13 @@ class RenderIncludeViewHelper extends RenderViewHelper
         $this->renderingContext = $renderingContext ?? $this->renderingContext;
         $renderChildrenClosure ??= $this->buildRenderChildrenClosure();
 
+        // generate the cache filename
+        $name = $this->validateName($this->arguments);
+
         if ($this->isBackendUser()) {
             $content = parent::renderStatic($this->arguments, $renderChildrenClosure, $this->renderingContext);
             // Put the code to register to use in InternalSsiRedirectMiddleware if the site comes from page cache
-            $this->lastRenderedContentRegister->set($content);
+            $this->lastRenderedContentRegister->set($name, $content);
             return $content;
         }
 
@@ -100,9 +102,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
             $groupString = '_' . implode('-', $frontendUser->getGroupIds());
         }
 
-        // generate the cache filename
-        $name = $this->validateName($this->arguments);
-        $filename = $this->getSiteName() . '_' . $this->getLangauge() . '_' . $name . $groupString . '.html';
+        $filename = $this->getSiteName() . '_' . $this->getLanguage() . '_' . $name . $groupString . '.html';
 
         // If the cache has not the proper entry, generate it
         $cache = $this->cacheManager->getCache('aus_ssi_include_cache');
@@ -116,10 +116,10 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
             $cacheTags = ['tx_ssiinclude_' . $name, ...$this->arguments['cacheTags']];
             $cache->set($filename, $html, $cacheTags, $this->arguments['cacheLifeTime']);
-            $this->lastRenderedContentRegister->set($html);
+            $this->lastRenderedContentRegister->set($name, $html);
         }
 
-        // generate the variables needed for include commments
+        // generate the variables needed for include comments
         $reqUrl = $this->filenameUtility->getReqUrl($filename);
         $method = GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('ssi_include', 'method');
         if ($method === self::METHOD_ESI) {
@@ -145,7 +145,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
     /**
      * @throws AspectNotFoundException
      */
-    protected function getLangauge(): int
+    protected function getLanguage(): int
     {
         return $this->context->getPropertyFromAspect('language', 'id');
     }
