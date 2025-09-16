@@ -15,10 +15,6 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  */
 class IsCacheableUtility
 {
-    public function __construct(private readonly Context $context)
-    {
-    }
-
     public function usePageCache(?TypoScriptFrontendController $typoScriptFrontendController = null, bool $usePageCache = true): bool
     {
         if (!$usePageCache) {
@@ -30,7 +26,7 @@ class IsCacheableUtility
             return $usePageCache;
         }
 
-        $context = $this->context;
+        $context = GeneralUtility::makeInstance(Context::class);
         assert($context instanceof Context);
         $backendUserContext = $context->getAspect('backend.user');
         if ($backendUserContext->isLoggedIn()) {
