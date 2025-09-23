@@ -1,0 +1,17 @@
+page = PAGE
+page {
+    typeNum = 0
+    10 = FLUIDTEMPLATE
+    10 {
+        templateName = Default
+        templateRootPaths {
+            10 = EXT:ssi_include/Tests/Fixtures/Templates/
+        }
+        layoutRootPaths {
+            10 = EXT:ssi_include/Tests/Fixtures/Layouts/
+        }
+        partialRootPaths {
+            10 = EXT:ssi_include/Tests/Fixtures/Partials/
+        }
+    }
+}

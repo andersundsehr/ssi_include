@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Ssch\TYPO3Rector\CodeQuality\General\GeneralUtilityMakeInstanceToConstructorPropertyRector;
 use PLUS\GrumPHPConfig\RectorSettings;
 use Rector\Config\RectorConfig;
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
@@ -32,8 +33,8 @@ return static function (RectorConfig $rectorConfig): void {
         [
             ...RectorSettings::skip(),
             ...RectorSettings::skipTypo3(),
-            DateTimeAspectInsteadOfGlobalsExecTimeRector::class
-
+            DateTimeAspectInsteadOfGlobalsExecTimeRector::class,
+            GeneralUtilityMakeInstanceToConstructorPropertyRector::class,
             /**
              * rector should not touch these files
              */

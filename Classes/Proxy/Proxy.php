@@ -12,6 +12,7 @@ use Closure;
 
 /**
  * @implements ArrayAccess<int, mixed>
+ * @implements Iterator<mixed, mixed>
  */
 final class Proxy implements Iterator, Countable, Stringable, ArrayAccess
 {

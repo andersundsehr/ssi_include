@@ -8,11 +8,10 @@ use AUS\SsiInclude\Cache\Frontend\SsiIncludeCacheFrontend;
 use AUS\SsiInclude\Event\RenderedEvent;
 use AUS\SsiInclude\Register\LastRenderedContentRegister;
 use AUS\SsiInclude\Utility\FilenameUtility;
-use Closure;
 use Exception;
-use Override;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Exception\InvalidDataException;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
@@ -22,8 +21,8 @@ use TYPO3\CMS\Core\Context\Exception\AspectNotFoundException;
 use TYPO3\CMS\Core\Context\UserAspect;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\ViewHelpers\RenderViewHelper;
+use Webimpress\SafeWriter\Exception\ExceptionInterface;
 
 use function assert;
 
@@ -48,48 +47,29 @@ class RenderIncludeViewHelper extends RenderViewHelper
     {
         parent::initializeArguments();
         $this->registerArgument('name', 'string', 'Specifies the file name of the cache (without .html ending)', true);
-        $this->registerArgument('cacheLifeTime', 'int', 'Specifies the lifetime in seconds (defaults to 300)', false, 300);
+        $this->registerArgument('cacheLifeTime', 'int|null', 'Specifies the lifetime in seconds');
         $this->registerArgument('cacheTags', 'array', 'Tags to set that can clear with flushByTags', false, []);
     }
 
     /**
-     * @deprecated can be removed if parent class does not have renderStatic anymore.
-     */
-    #[Override]
-    public static function renderStatic(array $arguments, Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
-    {
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $isDisabled = (bool)GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('ssi_include', 'disabled');
-        if ($isDisabled) {
-            return parent::renderStatic($arguments, $renderChildrenClosure, $renderingContext);
-        }
-
-        $self = GeneralUtility::makeInstance(self::class);
-        assert($self instanceof self);
-        /** @noinspection PhpUnhandledExceptionInspection */
-        return $self->renderNonStatic($arguments, $renderChildrenClosure, $renderingContext);
-    }
-
-    /**
-     * @param array<string, mixed>|null $arguments
      * @throws Exception
-     * @throws NoSuchCacheException
-     * @throws AspectNotFoundException
-     * @throws ExtensionConfigurationPathDoesNotExistException
      * @throws ExtensionConfigurationExtensionNotConfiguredException
+     * @throws ExtensionConfigurationPathDoesNotExistException
+     * @throws NoSuchCacheException
+     * @throws \TYPO3\CMS\Core\Cache\Exception
+     * @throws InvalidDataException
+     * @throws AspectNotFoundException
+     * @throws ExceptionInterface
      */
-    public function renderNonStatic(?array $arguments = null, ?Closure $renderChildrenClosure = null, ?RenderingContextInterface $renderingContext = null): string
+    public function render(): string
     {
-        $this->arguments = $arguments ?? $this->arguments;
-        $this->renderingContext = $renderingContext ?? $this->renderingContext;
-        $renderChildrenClosure ??= $this->buildRenderChildrenClosure();
-
         // generate the cache filename
         $name = $this->validateName($this->arguments);
 
         if ($this->isBackendUser()) {
-            $content = parent::renderStatic($this->arguments, $renderChildrenClosure, $this->renderingContext);
+            $content = parent::render();
             // Put the code to register to use in InternalSsiRedirectMiddleware if the site comes from page cache
+            assert(is_string($content));
             $this->lastRenderedContentRegister->set($name, $content);
             return $content;
         }
@@ -107,15 +87,22 @@ class RenderIncludeViewHelper extends RenderViewHelper
         // If the cache has not the proper entry, generate it
         $cache = $this->cacheManager->getCache('aus_ssi_include_cache');
         assert($cache instanceof SsiIncludeCacheFrontend);
+
         if (!$cache->has($filename)) {
-            $html = parent::renderStatic($this->arguments, $renderChildrenClosure, $this->renderingContext);
+            $html = parent::render();
+            assert(is_string($html));
             $eventDispatcher = GeneralUtility::makeInstance(EventDispatcher::class);
             $renderedHtmlEvent = new RenderedEvent($html);
             $eventDispatcher->dispatch($renderedHtmlEvent);
             $html = $renderedHtmlEvent->getHtml();
 
-            $cacheTags = ['tx_ssiinclude_' . $name, ...$this->arguments['cacheTags']];
-            $cache->set($filename, $html, $cacheTags, $this->arguments['cacheLifeTime']);
+            $cacheTags = $this->arguments['cacheTags'];
+            assert(is_array($cacheTags));
+            $cacheTags[] = 'tx_ssiinclude_' . $name;
+
+            $cacheLifeTime = $this->arguments['cacheLifeTime'];
+            assert(is_int($cacheLifeTime) || null === $cacheLifeTime);
+            $cache->set($filename, $html, $cacheTags, $cacheLifeTime);
             $this->lastRenderedContentRegister->set($name, $html);
         }
 
@@ -135,7 +122,8 @@ class RenderIncludeViewHelper extends RenderViewHelper
      */
     private function validateName(array $arguments): string
     {
-        if (ctype_alnum((string)$arguments['name'])) {
+        assert(is_string($arguments['name']));
+        if (ctype_alnum($arguments['name'])) {
             return $arguments['name'];
         }
 
@@ -147,7 +135,9 @@ class RenderIncludeViewHelper extends RenderViewHelper
      */
     protected function getLanguage(): int
     {
-        return $this->context->getPropertyFromAspect('language', 'id');
+        $language = $this->context->getPropertyFromAspect('language', 'id');
+        assert(is_int($language));
+        return $language;
     }
 
     /**
@@ -155,7 +145,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
      */
     protected function isBackendUser(): bool
     {
-        return $this->context->getPropertyFromAspect('backend.user', 'isLoggedIn');
+        return (bool)$this->context->getPropertyFromAspect('backend.user', 'isLoggedIn');
     }
 
     protected function getSiteName(): string

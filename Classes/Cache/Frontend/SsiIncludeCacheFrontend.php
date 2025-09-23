@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\Cache\Frontend;
 
+use AUS\SsiInclude\Cache\Backend\SsiIncludeCacheBackend;
 use InvalidArgumentException;
 use TYPO3\CMS\Core\Cache\Exception;
 use TYPO3\CMS\Core\Cache\Exception\InvalidDataException;
 use TYPO3\CMS\Core\Cache\Frontend\AbstractFrontend;
+use Webimpress\SafeWriter\Exception\ExceptionInterface;
 
 /**
  * A cache frontend for SSI include cache entries.
@@ -19,9 +21,10 @@ class SsiIncludeCacheFrontend extends AbstractFrontend
 
     /**
      * @inheritdoc
-     * @throws Exception
-     * @throws InvalidDataException
      * @param list<string> $tags
+     * @throws InvalidDataException
+     * @throws Exception
+     * @throws ExceptionInterface
      */
     public function set($entryIdentifier, $data, array $tags = [], $lifetime = null): void
     {
@@ -39,6 +42,8 @@ class SsiIncludeCacheFrontend extends AbstractFrontend
             }
         }
 
+        assert($this->backend instanceof SsiIncludeCacheBackend);
+        assert(is_string($data));
         $this->backend->set($entryIdentifier, $data, $tags, $lifetime);
     }
 

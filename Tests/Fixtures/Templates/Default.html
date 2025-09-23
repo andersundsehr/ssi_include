@@ -1,0 +1,12 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:ssi="http://typo3.org/ns/AUS/SsiInclude/ViewHelpers" data-namespace-typo3-fluid="true">
+
+    <h1>Test Page with SSI Include</h1>
+
+    <ssi:renderInclude partial="testinclude" name="testinclude" cacheLifeTime="3600">
+
+    </ssi:renderInclude>
+
+    <div class="main-content">
+        <f:format.raw>{main}</f:format.raw>
+    </div>
+</html>

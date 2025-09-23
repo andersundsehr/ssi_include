@@ -1,18 +1,18 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Call to method disableCaching\\(\\) on an unknown class TYPO3\\\\CMS\\\\Frontend\\\\Event\\\\AfterCacheableContentIsGeneratedEvent\\.$#"
-			count: 1
-			path: Classes/EventListener/AfterCacheableContentIsGeneratedEventListener.php
+			message: "#^Cannot access offset int on mixed\\.$#"
+			count: 3
+			path: Classes/Proxy/Proxy.php
 
 		-
-			message: "#^Parameter \\$event of method AUS\\\\SsiInclude\\\\EventListener\\\\AfterCacheableContentIsGeneratedEventListener\\:\\:__invoke\\(\\) has invalid type TYPO3\\\\CMS\\\\Frontend\\\\Event\\\\AfterCacheableContentIsGeneratedEvent\\.$#"
+			message: "#^Cannot access offset int\\|null on mixed\\.$#"
 			count: 1
-			path: Classes/EventListener/AfterCacheableContentIsGeneratedEventListener.php
+			path: Classes/Proxy/Proxy.php
 
 		-
-			message: "#^Class AUS\\\\SsiInclude\\\\Proxy\\\\Proxy implements generic interface Iterator but does not specify its types\\: TKey, TValue$#"
-			count: 1
+			message: "#^Cannot access offset mixed on mixed\\.$#"
+			count: 4
 			path: Classes/Proxy/Proxy.php
 
 		-
@@ -56,11 +56,31 @@ parameters:
 			path: Classes/Proxy/Proxy.php
 
 		-
+			message: "#^Parameter \\#1 \\$array of function current expects array\\|object, mixed given\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Parameter \\#1 \\$array of function key expects array\\|object, mixed given\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Parameter \\#1 \\$array of function next expects array\\|object, mixed given\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
+			message: "#^Parameter \\#1 \\$array of function reset expects array\\|object, mixed given\\.$#"
+			count: 1
+			path: Classes/Proxy/Proxy.php
+
+		-
 			message: "#^Parameter \\#1 \\$callback of function call_user_func expects callable\\(\\)\\: mixed, array\\{mixed, mixed\\} given\\.$#"
 			count: 1
 			path: Classes/Proxy/Proxy.php
 
 		-
-			message: "#^Class TYPO3\\\\CMS\\\\Frontend\\\\Event\\\\AfterCacheableContentIsGeneratedEvent not found\\.$#"
+			message: "#^Parameter \\#1 \\$callback of function call_user_func expects callable\\(\\)\\: mixed, mixed given\\.$#"
 			count: 1
-			path: Configuration/Services.php
+			path: Classes/Proxy/Proxy.php
