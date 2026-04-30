@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace AUS\SsiInclude\Tests;
 
 use AUS\SsiInclude\Cache\Frontend\SsiIncludeCacheFrontend;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class SsiIncludeCacheFrontendTest extends UnitTestCase
 {
     protected bool $resetSingletonInstances = true;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function validFilenamesPass(): void
     {
         $validFilenames = [
@@ -29,9 +28,7 @@ class SsiIncludeCacheFrontendTest extends UnitTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function invalidFilenamesFail(): void
     {
         $invalidFilenames = [

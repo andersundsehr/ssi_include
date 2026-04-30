@@ -8,21 +8,26 @@
       "name": "Matthias Vogel",
       "email": "m.vogel@andersundsehr.com",
       "homepage": "https://andersundsehr.com"
+    },
+    {
+      "name": "Stefan Lamm",
+      "email": "s.lamm@andersundsehr.com",
+      "homepage": "https://andersundsehr.com"
     }
   ],
   "require": {
-    "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
-    "typo3/cms-core": "^11.5.0 || ^12.4.0 || ^13.4.0",
-    "typo3/cms-fluid": "^11.5.0 || ^12.4.0 || ^13.4.0",
-    "typo3/cms-frontend": "^11.5.0 || ^12.4.0 || ^13.4.0",
+    "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+    "typo3/cms-core": "^12.4.0 || ^13.4.0",
+    "typo3/cms-fluid": "^12.4.0 || ^13.4.0",
+    "typo3/cms-frontend": "^12.4.0 || ^13.4.0",
     "webimpress/safe-writer": "^2.2.0"
   },
   "require-dev": {
     "composer/composer": "^2.5.5",
     "pluswerk/grumphp-config": "*",
-    "saschaegerer/phpstan-typo3": "*",
-    "ssch/typo3-rector": "^2.5.0",
-    "typo3/testing-framework": "^7.1.1 || ^8.2.7 || ^9.2.0"
+    "saschaegerer/phpstan-typo3": "^2.0.0 || ^3.0.1",
+    "ssch/typo3-rector": "^2.15.2 || ^3.14.1",
+    "typo3/testing-framework": "^8.3.1 || ^9.5.0"
   },
   "replace": {
     "typo3-ter/ssi-include": "self.version"
@@ -39,6 +44,7 @@
   },
   "config": {
     "allow-plugins": {
+      "a9f/fractor-extension-installer": true,
       "ergebnis/composer-normalize": true,
       "phpro/grumphp": true,
       "phpstan/extension-installer": true,
@@ -55,7 +61,7 @@
     }
   },
   "scripts": {
-    "test": "@php ./vendor/bin/phpunit"
+    "test": "XDEBUG_MODE=coverage php ./vendor/bin/phpunit"
   },
   "ter-require": {
     "webimpress/safe-writer": "^2.2.0"

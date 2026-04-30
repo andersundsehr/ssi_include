@@ -24,5 +24,17 @@ docker run --rm -it \
   $(ACT_IMAGE)
 endef
 
-ci:
-	$(DOCKER_RUN) $(PLATFORM) $(SECRETS) $(ACT_ARGS)
+# ---- Targets ----
+.PHONY: all ci clean
+
+all: ci clean
+
+ci:   ## Standard-Event "push"
+	$(DOCKER_RUN) $(PLATFORM) $(SECRETS) $(ACT_ARGS) 2>&1 | tee /tmp/act-output.log; \
+	echo ""; \
+	echo "=== 🏁 Summary ==="; \
+	grep "🏁" /tmp/act-output.log || true
+
+
+clean:
+	docker rm -f $$(docker ps -aq --filter "name=act-") 2>/dev/null || true

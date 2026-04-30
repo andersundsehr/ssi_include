@@ -27,7 +27,6 @@ class IsCacheableUtility
         }
 
         $context = GeneralUtility::makeInstance(Context::class);
-        assert($context instanceof Context);
         $backendUserContext = $context->getAspect('backend.user');
         if ($backendUserContext->isLoggedIn()) {
             return false;

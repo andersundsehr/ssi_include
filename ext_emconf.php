@@ -14,7 +14,7 @@ $EM_CONF[$_EXTKEY] = [
     'version' =>  InstalledVersions::getPrettyVersion('andersundsehr/ssi-include'),
     'constraints' => [
         'depends' => [
-            'typo3' => '10.4.0-11.99.99',
+            'typo3' => '12.4.0-13.99.99',
         ],
         'conflicts' => [
         ],

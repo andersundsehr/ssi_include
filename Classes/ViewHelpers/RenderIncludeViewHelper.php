@@ -76,6 +76,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
         // Get frontend user groups for their group dependent include file
         $frontendUser = $this->context->getAspect('frontend.user');
+        /** @phpstan-ignore instanceof.alwaysTrue, function.alreadyNarrowedType */
         assert($frontendUser instanceof UserAspect);
         $groupString = '';
         if ($frontendUser->isLoggedIn()) {
@@ -96,8 +97,8 @@ class RenderIncludeViewHelper extends RenderViewHelper
             $eventDispatcher->dispatch($renderedHtmlEvent);
             $html = $renderedHtmlEvent->getHtml();
 
-            $cacheTags = $this->arguments['cacheTags'];
-            assert(is_array($cacheTags));
+            /** @var list<string> $cacheTags */
+            $cacheTags = $this->arguments['cacheTags'] ?? [];
             $cacheTags[] = 'tx_ssiinclude_' . $name;
 
             $cacheLifeTime = $this->arguments['cacheLifeTime'];
@@ -150,6 +151,7 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
     protected function getSiteName(): string
     {
+        /** @phpstan-ignore method.nonObject */
         return $GLOBALS['TYPO3_REQUEST']->getAttribute('site')->getIdentifier();
     }
 }

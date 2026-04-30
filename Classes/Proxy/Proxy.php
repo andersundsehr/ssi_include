@@ -31,46 +31,55 @@ final class Proxy implements Iterator, Countable, Stringable, ArrayAccess
         }
     }
 
-    public function __call($name, $arguments): mixed
+    /**
+     * @param array<mixed> $arguments
+     */
+    public function __call(string $name, array $arguments): mixed
     {
         $this->processRealInstance();
+        /** @phpstan-ignore argument.type */
         return call_user_func([$this->value, $name], $arguments);
     }
 
-    public function __invoke(...$arguments): mixed
+    public function __invoke(mixed ...$arguments): mixed
     {
         $this->processRealInstance();
         return call_user_func($this->value, $arguments);
     }
 
-    public function __isset($name): bool
+    public function __isset(string $name): bool
     {
         $this->processRealInstance();
+        /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
         return isset($this->value[$name]);
     }
 
-    public function __get($name): mixed
+    public function __get(string $name): mixed
     {
         $this->processRealInstance();
+        /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
         return $this->value[$name];
     }
 
-    public function __set($name, $value): void
+    public function __set(string $name, mixed $value): void
     {
         $this->processRealInstance();
+        /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
         $this->value[$name] = $value;
     }
 
-    public function __unset($name): void
+    public function __unset(string $name): void
     {
         $this->processRealInstance();
+        /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
         unset($this->value[$name]);
     }
 
     public function __toString(): string
     {
         $this->processRealInstance();
-        return $this->value . '';
+        // @phpstan-ignore cast.string
+        return (string)$this->value;
     }
 
     public function current(): mixed
