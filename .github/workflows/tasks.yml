@@ -15,7 +15,7 @@ jobs:
       image: ghcr.io/typo3/core-testing-php${{ matrix.php }}:latest
     steps:
       - name: Install dependencies
-        run: apk add --no-cache nodejs
+        run: apk add --no-cache nodejs gpg
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
         with:
