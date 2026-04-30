@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AUS\SsiInclude\Tests;
 
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use AUS\SsiInclude\Cache\Backend\SsiIncludeCacheBackend;
 use AUS\SsiInclude\Cache\Frontend\SsiIncludeCacheFrontend;
@@ -70,7 +71,6 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
         parent::tearDown();
 
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cacheManager->flushCaches();
     }
 
@@ -80,7 +80,6 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     private function initializeCacheFramework(): void
     {
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cacheManager->setCacheConfigurations([
             'aus_ssi_include_cache' => [
                 'frontend' => SsiIncludeCacheFrontend::class,
@@ -93,9 +92,9 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws Exception
      */
+    #[Test]
     public function cacheTableExists(): void
     {
         $connection = $this->getConnectionPool()->getConnectionForTable('cache_aus_ssi_include_cache');
@@ -106,9 +105,9 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function cacheEntryIsStoredAndRetrievedSuccessfully(): void
     {
         $entryIdentifier = 'test_entry.html';
@@ -116,7 +115,6 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
 
         // Store cache entry
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
         $cache->set($entryIdentifier, $data);
 
@@ -132,16 +130,15 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function cacheEntryIsRemovedSuccessfully(): void
     {
         $entryIdentifier = 'test_entry.html';
         $data = '<h1>Cached Content</h1>';
 
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
         $cache->set($entryIdentifier, $data);
         self::assertTrue($cache->has($entryIdentifier));
@@ -155,16 +152,15 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function flushRemovesAllCacheEntries(): void
     {
         $data1 = '<h1>Content 1</h1>';
         $data2 = '<h1>Content 2</h1>';
 
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
 
         $cache->set('entry1.html', $data1);
@@ -184,16 +180,15 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function flushByTagRemovesOnlyMatchingEntries(): void
     {
         $data1 = '<h1>Content 1</h1>';
         $data2 = '<h1>Content 2</h1>';
 
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
 
         $cache->set('entry1.html', $data1, ['tag1']);
@@ -214,9 +209,9 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function garbageCollectionRemovesOrphanedFiles(): void
     {
         $orphanedFile = $this->ssiIncludeDir . 'orphaned.html';
@@ -226,7 +221,6 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
         self::assertFileExists($orphanedFile);
 
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
         $cache->collectGarbage();
 
@@ -235,16 +229,16 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function garbageCollectionRemovesOutdatedFiles(): void
     {
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
 
         $cache->set('outdated.html', '<h1>Outdated Content</h1>', [], 1);
+        assert(is_int($GLOBALS['EXEC_TIME']));
         $GLOBALS['EXEC_TIME'] += 2;
         $cache->collectGarbage();
         $GLOBALS['EXEC_TIME'] -= 2;
@@ -255,13 +249,10 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
         self::assertFileDoesNotExist($this->ssiIncludeDir . 'outdated.html');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function cacheFlushEventRemovesAllFiles(): void
     {
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
         $cache->set('cacheFlushEventRemovesAllFiles1.html', 'test', ['tag1']);
         self::assertTrue($cache->has('cacheFlushEventRemovesAllFiles1.html'));
@@ -281,20 +272,18 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function noCacheFileCreatedWhenBackendUserIsLoggedIn(): void
     {
-        #$cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        #assert($cacheManager instanceof CacheManager);
-        #$cacheManager->flushCaches();
-
         // Import a page tree with a test page
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/pages.csv');
 
         // Set extension configuration
+        // @phpstan-ignore offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible
         $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['disabled'] = '0';
+        // @phpstan-ignore offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible
         $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['method'] = 'ssi';
 
         // Set up TypoScript template for the test page
@@ -341,16 +330,18 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function cacheFileCreatedWhenNoBackendUserLoggedIn(): void
     {
         // Import a page tree with a test page
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/pages.csv');
 
         // Set extension configuration
+        // @phpstan-ignore offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible
         $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['disabled'] = '0';
+        // @phpstan-ignore offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible
         $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['ssi_include']['method'] = 'ssi';
 
         // Set up TypoScript template for the test page
@@ -404,9 +395,9 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
     }
 
     /**
-     * @test
      * @throws NoSuchCacheException
      */
+    #[Test]
     public function dataHandlerClearCacheRemovesCacheEntry(): void
     {
         $entryIdentifier = 'datahandler_test_entry.html';
@@ -414,7 +405,6 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
 
         // Store cache entry first
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
         assert($cache->getBackend() instanceof SsiIncludeCacheBackend);
         $cache->set($entryIdentifier, $data);

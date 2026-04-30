@@ -1,3 +1,6 @@
+[![CI](https://github.com/andersundsehr/ssi_include/actions/workflows/tasks.yml/badge.svg)](https://github.com/andersundsehr/ssi_include/actions/workflows/tasks.yml)
+[![codecov](https://codecov.io/github/andersundsehr/ssi_include/branch/main/graph/badge.svg)](https://app.codecov.io/github/andersundsehr/ssi_include)
+
 # EXT:ssi_include
 
 This Extension will help you to update your Menu's and other Partials faster if they are rendered the Same over all your Pages.  

@@ -14,6 +14,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\Uri;
+use TYPO3\CMS\Frontend\Cache\CacheInstruction;
 
 class InternalSsiRedirectMiddleware implements MiddlewareInterface
 {
@@ -35,8 +36,14 @@ class InternalSsiRedirectMiddleware implements MiddlewareInterface
             if (file_exists($absolutePath)) {
                 $content = file_get_contents($absolutePath);
             } else {
+                $cacheInstruction = $request->getAttribute('frontend.cache.instruction');
+                if (!$cacheInstruction instanceof CacheInstruction) {
+                    $cacheInstruction = new CacheInstruction();
+                }
+
+                $cacheInstruction->disableCache('EXT:ssi_include: Disabled cache for SSI sub-request.');
                 $subRequest = $request
-                    ->withAttribute('noCache', true)
+                    ->withAttribute('frontend.cache.instruction', $cacheInstruction)
                     ->withQueryParams([])
                     ->withUri($request->getUri()->withPath($originalRequestUri->getPath())->withQuery($originalRequestUri->getQuery()));
                 $handler->handle($subRequest);

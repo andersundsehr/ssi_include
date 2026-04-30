@@ -73,6 +73,7 @@ class SsiIncludeCacheBackend extends Typo3DatabaseBackend
      */
     public function set($entryIdentifier, $data, array $tags = [], $lifetime = null): void
     {
+        /** @phpstan-ignore function.alreadyNarrowedType */
         if (!is_string($data)) {
             throw new InvalidArgumentException('Data must be a string', 1616420133);
         }
@@ -180,6 +181,6 @@ class SsiIncludeCacheBackend extends Typo3DatabaseBackend
      */
     public function findIdentifiersByTag($tag): array
     {
-        return parent::findIdentifiersByTag($tag);
+        return array_values(parent::findIdentifiersByTag($tag));
     }
 }

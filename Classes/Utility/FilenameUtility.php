@@ -24,7 +24,6 @@ class FilenameUtility
         }
 
         $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
-        assert($cacheManager instanceof CacheManager);
         $cache = $cacheManager->getCache('aus_ssi_include_cache');
         $cacheBackend = $cache->getBackend();
         assert($cacheBackend instanceof SsiIncludeCacheBackend);
@@ -46,7 +45,8 @@ class FilenameUtility
      */
     public function getReqUrl(string $filename): string
     {
-        $reverseProxyPrefix = '/' . trim($GLOBALS['TYPO3_CONF_VARS']['SYS']['reverseProxyPrefix'] ?? '', '/') . '/';
+        // @phpstan-ignore offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible, cast.string
+        $reverseProxyPrefix = '/' . trim((string)($GLOBALS['TYPO3_CONF_VARS']['SYS']['reverseProxyPrefix'] ?? ''), '/') . '/';
         $includePath = rtrim($reverseProxyPrefix, '/') . $this->getSsiIncludeDir();
         return  $includePath . $filename . '?ssi_include=' . $filename . '&originalRequestUri=' . urlencode((string)GeneralUtility::getIndpEnv('REQUEST_URI'));
     }

@@ -4,3 +4,4 @@ vendor/
 var/
 .phpunit.result.cache
 .idea/
+coverage/
