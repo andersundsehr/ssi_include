@@ -13,6 +13,8 @@ jobs:
         typo3: [ '12', '13' ]
     container:
       image: ghcr.io/typo3/core-testing-php${{ matrix.php }}:latest
+    env:
+      COMPOSER_AUTH: ${{ secrets.TYPO3_ELTS_COMPOSER_AUTH }}
     steps:
       - name: Install dependencies
         run: apk add --no-cache nodejs gpg
@@ -23,9 +25,36 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.php }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.php }}-composer-
-      - run: composer update --with typo3/minimal="^${{ matrix.typo3 }}" --no-interaction --no-progress -W --dev
+      - name: Install the security-fixed SVG sanitizer in CI
+        run: |
+          alias=0.22.99
+          if [ "${{ matrix.typo3 }}" = "11" ]; then alias=0.18.99; fi
+          composer require "enshrined/svg-sanitize:1.0.0 as $alias" --dev --no-update --sort-packages --no-interaction
+      - name: Configure TYPO3 ELTS when an authorized test license is available
+        if: (matrix.typo3 == '11' || matrix.typo3 == '12') && vars.TYPO3_ELTS_REPOSITORY_URL != ''
+        env:
+          TYPO3_ELTS_REPOSITORY_URL: ${{ vars.TYPO3_ELTS_REPOSITORY_URL }}
+        run: composer config --global repositories.typo3-elts composer "$TYPO3_ELTS_REPOSITORY_URL"
+      - name: Resolve the actual TYPO3 matrix version
+        run: |
+          composer config lock true
+          composer require "typo3/minimal:^${{ matrix.typo3 }}" --dev --no-update --sort-packages --no-interaction
+          composer update --no-interaction --no-progress -W
+          composer check-platform-reqs
+          composer audit --abandoned=report
       - run: git config --global --add safe.directory $GITHUB_WORKSPACE
-      - run: ./vendor/bin/grumphp run --ansi --no-interaction
+      - run: bash tests/typo3-svg-sanitizer.sh
+      - name: Run all static checks
+        shell: bash
+        run: |
+          set -o pipefail
+          ./vendor/bin/grumphp run --no-ansi --no-interaction 2>&1 | tee /tmp/php85-grumphp.log
+      - name: Report failed static checks
+        if: failure()
+        run: |
+          if [ -f /tmp/php85-grumphp.log ]; then
+            php -r '$s=file_get_contents("/tmp/php85-grumphp.log"); echo "::error::".str_replace(["%", "\r", "\n"], ["%25", "%0D", "%0A"], substr($s, -5000))."\n";'
+          fi
       - run: composer test
       - name: Upload coverage reports to Codecov
         if: ${{ env.CODECOV_TOKEN != '' }}
@@ -48,7 +77,7 @@ jobs:
       TYPO3_API_PASSWORD: ${{ secrets.TYPO3_API_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Get the version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
