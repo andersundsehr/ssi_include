@@ -23,8 +23,14 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.php }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.php }}-composer-
+      - name: Install the security-fixed SVG sanitizer in CI
+        run: |
+          alias=0.22.99
+          if [ "${{ matrix.typo3 }}" = "11" ]; then alias=0.18.99; fi
+          composer require "enshrined/svg-sanitize:1.0.0 as $alias" --dev --no-update --sort-packages --no-interaction
       - run: composer update --with typo3/minimal="^${{ matrix.typo3 }}" --no-interaction --no-progress -W --dev
       - run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - run: bash tests/typo3-svg-sanitizer.sh
       - run: ./vendor/bin/grumphp run --ansi --no-interaction
       - run: composer test
       - name: Upload coverage reports to Codecov
@@ -48,7 +54,7 @@ jobs:
       TYPO3_API_PASSWORD: ${{ secrets.TYPO3_API_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Get the version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
