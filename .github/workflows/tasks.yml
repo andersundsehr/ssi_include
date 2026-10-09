@@ -35,7 +35,13 @@ jobs:
         env:
           TYPO3_ELTS_REPOSITORY_URL: ${{ vars.TYPO3_ELTS_REPOSITORY_URL }}
         run: composer config --global repositories.typo3-elts composer "$TYPO3_ELTS_REPOSITORY_URL"
-      - run: composer update --with typo3/minimal="^${{ matrix.typo3 }}" --no-interaction --no-progress -W --dev
+      - name: Resolve the actual TYPO3 matrix version
+        run: |
+          composer config lock true
+          composer require "typo3/minimal:^${{ matrix.typo3 }}" --dev --no-update --sort-packages --no-interaction
+          composer update --no-interaction --no-progress -W
+          composer check-platform-reqs
+          composer audit --abandoned=report
       - run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - run: bash tests/typo3-svg-sanitizer.sh
       - name: Run all static checks
