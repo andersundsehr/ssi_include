@@ -241,6 +241,7 @@ class SsiIncludeCacheBackendTest extends FunctionalTestCase
         assert(is_int($GLOBALS['EXEC_TIME']));
         $GLOBALS['EXEC_TIME'] += 2;
         $cache->collectGarbage();
+        assert(is_int($GLOBALS['EXEC_TIME']));
         $GLOBALS['EXEC_TIME'] -= 2;
 
         // The orphaned file should be deleted

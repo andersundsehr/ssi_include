@@ -18,7 +18,6 @@ use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExis
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\Exception\AspectNotFoundException;
-use TYPO3\CMS\Core\Context\UserAspect;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\ViewHelpers\RenderViewHelper;
@@ -76,8 +75,6 @@ class RenderIncludeViewHelper extends RenderViewHelper
 
         // Get frontend user groups for their group dependent include file
         $frontendUser = $this->context->getAspect('frontend.user');
-        /** @phpstan-ignore instanceof.alwaysTrue, function.alreadyNarrowedType */
-        assert($frontendUser instanceof UserAspect);
         $groupString = '';
         if ($frontendUser->isLoggedIn()) {
             $groupString = '_' . implode('-', $frontendUser->getGroupIds());
