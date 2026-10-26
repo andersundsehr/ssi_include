@@ -9,8 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '82', '83', '84', '85' ]
-        typo3: [ '12', '13' ]
+        php: ['82', '83', '84', '85']
+        typo3: ['13']
     container:
       image: ghcr.io/typo3/core-testing-php${{ matrix.php }}:latest
     steps:
@@ -23,9 +23,9 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.php }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.php }}-composer-
-      - run: composer update --with typo3/minimal="^${{ matrix.typo3 }}" --no-interaction --no-progress -W --dev
+      - run: composer update --with typo3/minimal="^${{ matrix.typo3 }}" --no-interaction --no-progress -W
       - run: git config --global --add safe.directory $GITHUB_WORKSPACE
-      - run: ./vendor/bin/grumphp run --ansi --no-interaction
+      - run: ./vendor/bin/grumphp run --no-ansi --no-interaction
       - run: composer test
       - name: Upload coverage reports to Codecov
         if: ${{ env.CODECOV_TOKEN != '' }}
@@ -48,7 +48,7 @@ jobs:
       TYPO3_API_PASSWORD: ${{ secrets.TYPO3_API_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Get the version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
